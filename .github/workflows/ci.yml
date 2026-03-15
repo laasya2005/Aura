@@ -75,8 +75,9 @@ jobs:
       - run: pnpm db:generate
       - run: pnpm build
 
-      - name: Run migrations
-        run: pnpm --filter @aura/db exec -- npx prisma db push --skip-generate
+      - name: Verify DB connection and push schema
+        run: |
+          pnpm --filter @aura/db exec -- npx prisma db push --skip-generate --accept-data-loss
         env:
           DATABASE_URL: postgresql://aura:aura_test_password@localhost:5432/aura_test
 
@@ -87,7 +88,7 @@ jobs:
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: ci-test-jwt-secret-min-32-characters!!
           JWT_REFRESH_SECRET: ci-test-refresh-secret-min-32-chars!!
-          ENCRYPTION_KEY: ci-test-encryption-key-must-be-32-hex-chars-exactly00
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
           NODE_ENV: test
           SKIP_WEBHOOK_VALIDATION: "true"
 
