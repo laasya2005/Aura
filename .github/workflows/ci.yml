@@ -27,6 +27,7 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
       - run: pnpm build
       - run: pnpm lint
       - run: pnpm format:check
@@ -71,6 +72,7 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
       - run: pnpm build
 
       - name: Run migrations
