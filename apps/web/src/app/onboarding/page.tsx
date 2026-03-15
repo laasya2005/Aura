@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 
 type Step = "welcome" | "usecase" | "aura" | "schedule" | "done";
