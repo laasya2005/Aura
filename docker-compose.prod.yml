@@ -1,0 +1,97 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aura-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aura}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-aura}
+    expose:
+      - "5432"
+    volumes:
+      - aura-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aura} -d ${POSTGRES_DB:-aura}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: aura-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    expose:
+      - "6379"
+    volumes:
+      - aura-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: aura-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aura}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-aura}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+      TWILIO_VERIFY_SERVICE_SID: ${TWILIO_VERIFY_SERVICE_SID}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO}
+      STRIPE_PRICE_ELITE: ${STRIPE_PRICE_ELITE}
+      WEB_URL: ${WEB_URL:-http://localhost:3000}
+      ADMIN_USER_IDS: ${ADMIN_USER_IDS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: aura-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:3001}
+    depends_on:
+      - api
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: aura-migrate
+    command: ["npx", "prisma", "migrate", "deploy", "--schema", "packages/db/prisma/schema.prisma"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aura}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-aura}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  aura-pgdata:
+  aura-redis:

@@ -1,0 +1,50 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+
+# Prisma
+packages/db/prisma/migrations/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+__snapshots__/
+
+# Temp files
+~$*
+
+# Claude Code
+.claude/
+
+# MCP / Playwright screenshots
+.mcp.json
+.playwright-mcp/
+
+# Build prompts / internal docs (not source code)
+*.docx
+Aura_Build_Prompts.md
+landing-page-full.png

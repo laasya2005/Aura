@@ -1,0 +1,46 @@
+{
+  "name": "@aura/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "clean": "rm -rf dist",
+    "lint": "eslint src/ --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "worker": "tsx watch src/worker.ts",
+    "tunnel": "ngrok http 3001 --url=nonpervertible-aliya-meatal.ngrok-free.dev"
+  },
+  "dependencies": {
+    "@aura/ai": "workspace:*",
+    "@aura/comms": "workspace:*",
+    "@aura/db": "workspace:*",
+    "@aura/queue": "workspace:*",
+    "@aura/shared": "workspace:*",
+    "@fastify/cookie": "^9.4.0",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/helmet": "^11.1.0",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^3.0.0",
+    "dotenv": "^17.3.1",
+    "fastify": "^4.26.0",
+    "livekit-server-sdk": "^2.15.0",
+    "fastify-plugin": "^4.5.0",
+    "ioredis": "^5.3.0",
+    "pino": "^8.19.0",
+    "stripe": "^14.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@aura/config-eslint": "workspace:*",
+    "@aura/config-ts": "workspace:*",
+    "@types/node": "^20.11.0",
+    "eslint": "^8.57.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^2.1.0"
+  }
+}

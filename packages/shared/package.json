@@ -1,0 +1,27 @@
+{
+  "name": "@aura/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint src/ --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "jose": "^5.2.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@aura/config-eslint": "workspace:*",
+    "@aura/config-ts": "workspace:*",
+    "@types/node": "^20.11.0",
+    "eslint": "^8.57.0",
+    "ioredis": "^5.3.0",
+    "typescript": "^5.3.0",
+    "vitest": "^2.1.0"
+  }
+}

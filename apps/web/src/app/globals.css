@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #FAFAFA;
+    --foreground: #0C0C0D;
+    --primary: #0C0C0D;
+    --primary-foreground: #FFFFFF;
+    --accent: #F4F4F5;
+    --accent-foreground: #0C0C0D;
+    --destructive: #E5484D;
+    --destructive-foreground: #FFFFFF;
+    --muted: #F4F4F5;
+    --muted-foreground: #6E6E77;
+    --card: #FFFFFF;
+    --card-foreground: #0C0C0D;
+    --border: #E4E4E7;
+    --ring: #0C0C0D;
+  }
+
+  .dark {
+    --background: #09090B;
+    --foreground: #ECECEE;
+    --primary: #ECECEE;
+    --primary-foreground: #09090B;
+    --accent: #18181B;
+    --accent-foreground: #ECECEE;
+    --destructive: #E5484D;
+    --destructive-foreground: #FFFFFF;
+    --muted: #18181B;
+    --muted-foreground: #71717A;
+    --card: #111113;
+    --card-foreground: #ECECEE;
+    --border: #1E1E22;
+    --ring: #ECECEE;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    font-size: 18px;
+  }
+
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ==========================================
+   Animations & Effects (monochrome)
+   ========================================== */
+
+/* Gradient text — monochrome shimmer */
+.gradient-text {
+  background: linear-gradient(135deg, var(--foreground), var(--muted-foreground), var(--foreground));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Glow effect — monochrome */
+.glow {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.05), 0 0 60px rgba(255, 255, 255, 0.02);
+}
+.glow:hover {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.08), 0 0 80px rgba(255, 255, 255, 0.03);
+}
+
+/* Animated mesh background */
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mesh-bg::before,
+.mesh-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.07;
+}
+
+.mesh-bg::before {
+  width: 600px;
+  height: 600px;
+  background: var(--foreground);
+  top: -200px;
+  right: -100px;
+  animation: float-blob 20s ease-in-out infinite;
+}
+
+.mesh-bg::after {
+  width: 500px;
+  height: 500px;
+  background: var(--foreground);
+  bottom: -150px;
+  left: -100px;
+  animation: float-blob 25s ease-in-out infinite reverse;
+}
+
+.mesh-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.04;
+  width: 400px;
+  height: 400px;
+  background: var(--foreground);
+  top: 40%;
+  left: 40%;
+  animation: float-blob 30s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+/* Chat bubbles */
+.chat-user {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.chat-assistant {
+  background: var(--accent);
+  border: 1px solid var(--border);
+}
+
+/* Streak fire animation */
+.streak-fire {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Floating animation */
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+.float-delayed {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+/* Shimmer loading */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Pill hover */
+.pill-hover {
+  transition: all 0.2s;
+}
+.pill-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress bar */
+.progress-gradient {
+  background: var(--foreground);
+}
+
+/* Custom range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--foreground);
+  cursor: pointer;
+  border: 2px solid var(--background);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--foreground);
+  cursor: pointer;
+  border: 2px solid var(--background);
+}
+
+/* ==========================================
+   Keyframes
+   ========================================== */
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes float-blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2)); }
+  50% { filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.4)); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes scale-in {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}

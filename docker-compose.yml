@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aura-postgres
+    environment:
+      POSTGRES_USER: aura
+      POSTGRES_PASSWORD: aura_dev_password
+      POSTGRES_DB: aura_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - aura-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aura -d aura_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: aura-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - aura-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  aura-pgdata:
+  aura-redis:

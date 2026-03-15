@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm lint
+      - run: pnpm format:check
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: aura
+          POSTGRES_PASSWORD: aura_test_password
+          POSTGRES_DB: aura_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aura -d aura_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - name: Run migrations
+        run: pnpm --filter @aura/db exec -- npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://aura:aura_test_password@localhost:5432/aura_test
+
+      - name: Run tests
+        run: pnpm test
+        env:
+          DATABASE_URL: postgresql://aura:aura_test_password@localhost:5432/aura_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci-test-jwt-secret-min-32-characters!!
+          JWT_REFRESH_SECRET: ci-test-refresh-secret-min-32-chars!!
+          NODE_ENV: test
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, test]
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        app: [api, web]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ${{ matrix.app }} image
+        run: docker build -f apps/${{ matrix.app }}/Dockerfile -t aura-${{ matrix.app }}:${{ github.sha }} .
+
+      - name: Verify image size
+        run: |
+          SIZE=$(docker image inspect aura-${{ matrix.app }}:${{ github.sha }} --format='{{.Size}}')
+          SIZE_MB=$((SIZE / 1024 / 1024))
+          echo "Image size: ${SIZE_MB}MB"
+          if [ "${{ matrix.app }}" = "api" ] && [ "$SIZE_MB" -gt 200 ]; then
+            echo "::warning::API image exceeds 200MB target: ${SIZE_MB}MB"
+          fi
+          if [ "${{ matrix.app }}" = "web" ] && [ "$SIZE_MB" -gt 300 ]; then
+            echo "::warning::Web image exceeds 300MB target: ${SIZE_MB}MB"
+          fi

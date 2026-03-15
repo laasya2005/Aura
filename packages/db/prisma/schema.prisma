@@ -1,0 +1,317 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum UserStatus {
+  ONBOARDING
+  ACTIVE
+  PAUSED
+  CHURNED
+  DELETED
+}
+
+enum AuraMode {
+  GLOW
+  FLAME
+  MIRROR
+  TIDE
+  VOLT
+  CUSTOM
+}
+
+enum GoalCategory {
+  FITNESS
+  MINDFULNESS
+  PRODUCTIVITY
+  LEARNING
+  SOCIAL
+  HEALTH
+  FINANCE
+  CREATIVE
+  CUSTOM
+}
+
+enum GoalStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ABANDONED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum Channel {
+  SMS
+  WHATSAPP
+  VOICE
+  WEB
+}
+
+enum ScheduleType {
+  MORNING_TEXT
+  CHECK_IN
+  EVENING_RECAP
+  VOICE_CALL
+  CUSTOM
+}
+
+enum MemoryType {
+  DAILY_SUMMARY
+  WEEKLY_SUMMARY
+  KEY_FACT
+  PREFERENCE
+  MILESTONE
+}
+
+enum Plan {
+  FREE
+  PRO
+  ELITE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+}
+
+enum ConsentType {
+  SMS
+  WHATSAPP
+  VOICE
+  MARKETING
+  DATA_PROCESSING
+}
+
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model User {
+  id          String     @id @default(cuid())
+  phone       String     @unique
+  email       String?    @unique
+  firstName   String?    @map("first_name")
+  lastName    String?    @map("last_name")
+  timezone    String     @default("America/New_York")
+  status      UserStatus @default(ONBOARDING)
+  plan        Plan       @default(FREE)
+  onboardedAt DateTime?  @map("onboarded_at")
+  lastActiveAt DateTime? @map("last_active_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+
+  auraProfile   AuraProfile?
+  goals         Goal[]
+  conversations Conversation[]
+  schedules     Schedule[]
+  memories      MemorySummary[]
+  subscription  Subscription?
+  consents      ConsentRecord[]
+  groupMembers  GroupMember[]
+
+  @@index([status])
+  @@map("users")
+}
+
+model AuraProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  mode      AuraMode @default(GLOW)
+  warmth    Float    @default(0.7)
+  humor     Float    @default(0.5)
+  directness Float  @default(0.5)
+  energy    Float    @default(0.5)
+  customPrompt String? @map("custom_prompt") @db.Text
+  voiceId   String?  @map("voice_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("aura_profiles")
+}
+
+model Goal {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  title       String
+  description String?      @db.Text
+  category    GoalCategory
+  status      GoalStatus   @default(ACTIVE)
+  targetDate  DateTime?    @map("target_date")
+  currentStreak Int        @default(0) @map("current_streak")
+  longestStreak Int        @default(0) @map("longest_streak")
+  lastStreakAt  DateTime?  @map("last_streak_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, category])
+  @@map("goals")
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  channel   Channel
+  startedAt DateTime @default(now()) @map("started_at")
+  endedAt   DateTime? @map("ended_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId, channel])
+  @@index([userId, startedAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String      @map("conversation_id")
+  role           MessageRole
+  content        String      @db.Text
+  channel        Channel
+  externalId     String?     @map("external_id")
+  metadata       Json?
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([externalId])
+  @@map("messages")
+}
+
+model Schedule {
+  id         String       @id @default(cuid())
+  userId     String       @map("user_id")
+  type       ScheduleType
+  channel    Channel
+  cronExpr   String       @map("cron_expr")
+  timezone   String       @default("America/New_York")
+  enabled    Boolean      @default(true)
+  nextRunAt  DateTime?    @map("next_run_at")
+  lastRunAt  DateTime?    @map("last_run_at")
+  metadata   Json?
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, enabled])
+  @@index([nextRunAt, enabled])
+  @@map("schedules")
+}
+
+model MemorySummary {
+  id        String     @id @default(cuid())
+  userId    String     @map("user_id")
+  type      MemoryType
+  content   String     @db.Text
+  embedding Float[]    @default([])
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, createdAt])
+  @@map("memory_summaries")
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  userId           String             @unique @map("user_id")
+  stripeCustomerId String?            @unique @map("stripe_customer_id")
+  stripeSubId      String?            @unique @map("stripe_sub_id")
+  plan             Plan               @default(FREE)
+  status           SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd Boolean           @default(false) @map("cancel_at_period_end")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model ConsentRecord {
+  id        String      @id @default(cuid())
+  userId    String?     @map("user_id")
+  type      ConsentType
+  granted   Boolean
+  ipAddress String?     @map("ip_address")
+  userAgent String?     @map("user_agent") @db.Text
+  grantedAt DateTime    @default(now()) @map("granted_at")
+  revokedAt DateTime?   @map("revoked_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, type])
+  @@map("consent_records")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  action    String
+  resource  String
+  resourceId String? @map("resource_id")
+  metadata  Json?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([resource, resourceId])
+  @@map("audit_logs")
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  inviteCode  String   @unique @map("invite_code")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members GroupMember[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String    @id @default(cuid())
+  groupId   String    @map("group_id")
+  userId    String    @map("user_id")
+  role      GroupRole @default(MEMBER)
+  joinedAt  DateTime  @default(now()) @map("joined_at")
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("group_members")
+}
