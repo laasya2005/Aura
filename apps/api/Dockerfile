@@ -17,7 +17,8 @@ RUN pnpm install --frozen-lockfile
 COPY packages/ packages/
 COPY apps/api/ apps/api/
 
-RUN pnpm --filter @aura/shared build && \
+RUN pnpm --filter @aura/db exec -- npx prisma generate && \
+    pnpm --filter @aura/shared build && \
     pnpm --filter @aura/db build && \
     pnpm --filter @aura/ai build && \
     pnpm --filter @aura/comms build && \
