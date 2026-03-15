@@ -64,13 +64,13 @@ export async function loadVoiceContext(
     firstName: user.firstName,
     timezone: user.timezone,
     plan: user.plan,
-    goals: user.goals.map((g) => ({
+    goals: user.goals.map((g: { title: string; category: string; currentStreak: number; status: string }) => ({
       title: g.title,
       category: g.category,
       currentStreak: g.currentStreak,
       status: g.status,
     })),
-    memories: user.memories.map((m) => ({ type: m.type, content: m.content })),
+    memories: user.memories.map((m: { type: string; content: string }) => ({ type: m.type, content: m.content })),
   };
 
   return { auraContext, userContext };

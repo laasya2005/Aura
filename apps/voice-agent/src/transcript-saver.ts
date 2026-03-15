@@ -1,4 +1,4 @@
-import type { PrismaClient, Prisma } from "@aura/db";
+import type { PrismaClient } from "@aura/db";
 
 export interface TranscriptEntry {
   role: "USER" | "ASSISTANT";
@@ -29,7 +29,7 @@ export async function saveTranscript(
     role: entry.role,
     content: entry.content,
     channel: "VOICE" as const,
-    metadata: { source: "livekit" } as Prisma.InputJsonValue,
+    metadata: JSON.parse(JSON.stringify({ source: "livekit" })),
     createdAt: entry.timestamp ?? new Date(),
   }));
 
