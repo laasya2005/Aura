@@ -125,7 +125,9 @@ export default async function webhookRoutes(server: FastifyInstance) {
         try {
           await engagementService.recordEngagement(user.id, "WHATSAPP", "MESSAGE_RESPONSE");
           await engagementService.completeScheduleExecutions(user.id, "WHATSAPP");
-        } catch (e) { server.log.warn(e, "Failed to record engagement"); }
+        } catch (e) {
+          server.log.warn(e, "Failed to record engagement");
+        }
 
         const waContent = formatForWhatsApp(result.response.content);
         await sendWhatsApp(phone, waContent);
@@ -158,8 +160,14 @@ export default async function webhookRoutes(server: FastifyInstance) {
       // Inbound call: From=user's phone, To=Twilio number
       // Try both to handle either direction
       const user =
-        (await server.prisma.user.findUnique({ where: { phone: body.To }, include: { auraProfile: true } })) ??
-        (await server.prisma.user.findUnique({ where: { phone: body.From }, include: { auraProfile: true } }));
+        (await server.prisma.user.findUnique({
+          where: { phone: body.To },
+          include: { auraProfile: true },
+        })) ??
+        (await server.prisma.user.findUnique({
+          where: { phone: body.From },
+          include: { auraProfile: true },
+        }));
 
       if (!user) {
         return reply.type("text/xml").send(buildTwimlHangup());
@@ -227,7 +235,9 @@ export default async function webhookRoutes(server: FastifyInstance) {
               duration: parseInt(body.CallDuration, 10),
             });
             await engagementService.completeScheduleExecutions(user.id, "VOICE");
-          } catch (e) { server.log.warn(e, "Failed to record engagement"); }
+          } catch (e) {
+            server.log.warn(e, "Failed to record engagement");
+          }
         }
       }
 

@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-
 type Step = "welcome" | "usecase" | "aura" | "schedule" | "done";
 const STEPS: Step[] = ["welcome", "usecase", "aura", "schedule", "done"];
 const VISIBLE_STEPS = STEPS.filter((s): s is Exclude<Step, "done"> => s !== "done");
@@ -134,12 +133,16 @@ export default function OnboardingPage() {
   const { refreshUser } = useAuth();
   const [step, setStep] = useState<Step>(() => {
     const saved = loadSaved();
-    return saved.step && STEPS.includes(saved.step) && saved.step !== "done" ? saved.step : "welcome";
+    return saved.step && STEPS.includes(saved.step) && saved.step !== "done"
+      ? saved.step
+      : "welcome";
   });
   const [data, setData] = useState<Partial<OnboardingData>>(() => {
     const { step: _step, ...rest } = loadSaved();
     return {
-      scheduleCards: [{ label: "", time: "09:00", reminder: "TEXT" as ReminderType, motivation: "" }],
+      scheduleCards: [
+        { label: "", time: "09:00", reminder: "TEXT" as ReminderType, motivation: "" },
+      ],
       ...rest,
     };
   });

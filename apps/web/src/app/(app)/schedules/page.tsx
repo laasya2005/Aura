@@ -272,10 +272,10 @@ export default function SchedulesPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[28px] font-bold tracking-tight">
-            Schedules
-          </h1>
-          <p className="text-base text-muted-foreground mt-1">When and how Aura checks in with you.</p>
+          <h1 className="text-[28px] font-bold tracking-tight">Schedules</h1>
+          <p className="text-base text-muted-foreground mt-1">
+            When and how Aura checks in with you.
+          </p>
         </div>
         <Button onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" /> New Schedule
@@ -290,9 +290,7 @@ export default function SchedulesPage() {
 
       {/* Quick Presets */}
       <div>
-        <p className="text-[14px] text-muted-foreground font-medium mb-3">
-          Quick presets
-        </p>
+        <p className="text-[14px] text-muted-foreground font-medium mb-3">Quick presets</p>
         <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar">
           {PRESETS.map((p) => (
             <button
@@ -443,14 +441,12 @@ export default function SchedulesPage() {
               )}
             >
               <div className="flex items-center gap-4 min-w-0">
-                <span className="text-[24px] flex-shrink-0">{CHANNEL_EMOJI[s.channel] ?? "🔔"}</span>
+                <span className="text-[24px] flex-shrink-0">
+                  {CHANNEL_EMOJI[s.channel] ?? "🔔"}
+                </span>
                 <div className="min-w-0">
-                  <p className="text-[16px] font-medium truncate">
-                    {getLabel(s)}
-                  </p>
-                  <p className="text-[14px] text-muted-foreground">
-                    {cronToHuman(s.cronExpr)}
-                  </p>
+                  <p className="text-[16px] font-medium truncate">{getLabel(s)}</p>
+                  <p className="text-[14px] text-muted-foreground">{cronToHuman(s.cronExpr)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">

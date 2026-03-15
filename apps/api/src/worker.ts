@@ -35,7 +35,11 @@ const conversationService = new ConversationService(prisma, redis, audit);
 
 const apiUrl = process.env.API_BASE_URL ?? process.env.API_URL ?? "http://localhost:3001";
 
-async function recordScheduleSent(userId: string, scheduleId: string, channel: string): Promise<void> {
+async function recordScheduleSent(
+  userId: string,
+  scheduleId: string,
+  channel: string
+): Promise<void> {
   try {
     await prisma.scheduleExecution.create({
       data: {

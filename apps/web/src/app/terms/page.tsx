@@ -42,8 +42,8 @@ export default function TermsPage() {
             <p>
               Aura is an AI-powered accountability companion that helps users achieve their goals
               through personalized check-in messages, motivational content, and progress tracking.
-              The Service is delivered through our web application and, with your consent, via WhatsApp
-              messages and automated voice calls.
+              The Service is delivered through our web application and, with your consent, via
+              WhatsApp messages and automated voice calls.
             </p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
@@ -83,16 +83,16 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold mb-3">5. WhatsApp and Voice Communications</h2>
             <p>
               By opting in to WhatsApp or voice communications through the Service, you consent to
-              receive recurring automated WhatsApp messages and/or voice calls from Aura at the phone
-              number you provided. These messages will relate to your goals, schedules, streak
+              receive recurring automated WhatsApp messages and/or voice calls from Aura at the
+              phone number you provided. These messages will relate to your goals, schedules, streak
               updates, and motivational check-ins.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.1 Opting In</h3>
             <p>
-              You opt in to WhatsApp/voice communications by enabling them during onboarding, creating
-              schedules with WhatsApp or voice channels, or enabling them in your notification
-              settings.
+              You opt in to WhatsApp/voice communications by enabling them during onboarding,
+              creating schedules with WhatsApp or voice channels, or enabling them in your
+              notification settings.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.2 Opting Out</h3>

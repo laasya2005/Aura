@@ -100,15 +100,15 @@ export default function ActivityPage() {
   useEffect(() => {
     if (!selectedConv) return;
     setLoadingMessages(true);
-    apiFetch<Message[]>(
-      `/conversations/${selectedConv.id}/messages?page=${msgPage}&limit=50`
-    ).then((res) => {
-      if (res.success && res.data) {
-        setMessages(res.data);
-        if (res.meta) setMsgMeta(res.meta as unknown as PaginationMeta);
+    apiFetch<Message[]>(`/conversations/${selectedConv.id}/messages?page=${msgPage}&limit=50`).then(
+      (res) => {
+        if (res.success && res.data) {
+          setMessages(res.data);
+          if (res.meta) setMsgMeta(res.meta as unknown as PaginationMeta);
+        }
+        setLoadingMessages(false);
       }
-      setLoadingMessages(false);
-    });
+    );
   }, [selectedConv, msgPage]);
 
   const openConversation = (conv: ConversationPreview) => {
@@ -167,9 +167,7 @@ export default function ActivityPage() {
 
             {msgMeta && (
               <div>
-                <p className="text-[24px] font-bold tracking-tight leading-none">
-                  {msgMeta.total}
-                </p>
+                <p className="text-[24px] font-bold tracking-tight leading-none">{msgMeta.total}</p>
                 <p className="text-[14px] text-muted-foreground mt-1">
                   message{msgMeta.total !== 1 ? "s" : ""}
                 </p>
@@ -197,7 +195,9 @@ export default function ActivityPage() {
               </div>
             ) : messages.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-[17px] text-muted-foreground">No messages in this conversation.</p>
+                <p className="text-[17px] text-muted-foreground">
+                  No messages in this conversation.
+                </p>
               </div>
             ) : (
               messages.map((msg) => (
@@ -274,11 +274,7 @@ export default function ActivityPage() {
             All your conversations with Aura, across every channel.
           </p>
         </div>
-        {meta && (
-          <span className="text-[14px] text-muted-foreground">
-            {meta.total} total
-          </span>
-        )}
+        {meta && <span className="text-[14px] text-muted-foreground">{meta.total} total</span>}
       </div>
 
       {/* Channel filter pills */}
@@ -315,7 +311,9 @@ export default function ActivityPage() {
       ) : filtered.length === 0 ? (
         <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl py-16 text-center">
           <p className="text-[17px] text-muted-foreground">
-            {filter === "ALL" ? "No conversations yet" : `No ${channelLabel(filter).toLowerCase()} conversations`}
+            {filter === "ALL"
+              ? "No conversations yet"
+              : `No ${channelLabel(filter).toLowerCase()} conversations`}
           </p>
           <p className="text-[14px] text-muted-foreground/60 mt-1">
             When Aura reaches out via voice or WhatsApp, conversations will appear here.
@@ -330,14 +328,10 @@ export default function ActivityPage() {
               className="w-full flex items-center justify-between gap-3 px-6 py-4 text-left transition-all duration-200 hover:bg-accent/50"
             >
               <div className="flex items-center gap-4 min-w-0">
-                <span className="text-[24px] flex-shrink-0">
-                  {channelEmoji(conv.channel)}
-                </span>
+                <span className="text-[24px] flex-shrink-0">{channelEmoji(conv.channel)}</span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-[16px] font-medium">
-                      {channelLabel(conv.channel)}
-                    </p>
+                    <p className="text-[16px] font-medium">{channelLabel(conv.channel)}</p>
                     <span className="text-[13px] text-muted-foreground">
                       {formatTime(conv.startedAt)}
                     </span>
@@ -348,9 +342,7 @@ export default function ActivityPage() {
                       {conv.lastMessage.content}
                     </p>
                   ) : (
-                    <p className="text-[14px] text-muted-foreground/60 mt-0.5">
-                      No messages
-                    </p>
+                    <p className="text-[14px] text-muted-foreground/60 mt-0.5">No messages</p>
                   )}
                 </div>
               </div>

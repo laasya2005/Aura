@@ -205,7 +205,9 @@ export default function SettingsPage() {
     <div className="space-y-10">
       <div>
         <h1 className="text-[28px] font-bold tracking-tight">Settings</h1>
-        <p className="text-base text-muted-foreground mt-1">Your account, notifications, and plan.</p>
+        <p className="text-base text-muted-foreground mt-1">
+          Your account, notifications, and plan.
+        </p>
       </div>
 
       {/* Profile + Notifications — equal columns, aligned tops */}
@@ -217,16 +219,31 @@ export default function SettingsPage() {
             <div className="flex items-center px-6 py-4 gap-4">
               <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">Name</label>
               <div className="flex gap-3 flex-1">
-                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First" />
-                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last" />
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First"
+                />
+                <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last"
+                />
               </div>
             </div>
             <div className="flex items-center px-6 py-4 gap-4">
               <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">Email</label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
             </div>
             <div className="flex items-center px-6 py-4 gap-4">
-              <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">Timezone</label>
+              <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">
+                Timezone
+              </label>
               <div className="flex-1">
                 <Select
                   value={timezone}
@@ -265,7 +282,10 @@ export default function SettingsPage() {
               const granted = consent?.granted ?? false;
               const meta = CONSENT_META[type];
               return (
-                <div key={type} className="flex items-center justify-between gap-3 px-6 py-5 flex-1">
+                <div
+                  key={type}
+                  className="flex items-center justify-between gap-3 px-6 py-5 flex-1"
+                >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-[18px]">{meta?.emoji}</span>
                     <div>
@@ -298,7 +318,8 @@ export default function SettingsPage() {
       <div>
         <p className="text-[14px] text-muted-foreground font-medium mb-1">Plan</p>
         <p className="text-[15px] text-muted-foreground mb-4">
-          You&apos;re on the <span className="font-medium text-foreground">{formatEnum(currentPlan)}</span> plan.
+          You&apos;re on the{" "}
+          <span className="font-medium text-foreground">{formatEnum(currentPlan)}</span> plan.
         </p>
         {billingSuccess && (
           <p className="text-[15px] text-foreground bg-accent rounded-[12px] px-4 py-3 border border-border mb-4">
@@ -341,7 +362,10 @@ export default function SettingsPage() {
                 </div>
                 <ul className="mt-5 space-y-2.5 flex-1">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-[14px] text-muted-foreground">
+                    <li
+                      key={f}
+                      className="flex items-center gap-2.5 text-[14px] text-muted-foreground"
+                    >
                       <span className="text-foreground/40">&#10003;</span>
                       <span>{f}</span>
                     </li>
@@ -411,8 +435,8 @@ export default function SettingsPage() {
       >
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            This will permanently delete your account, schedules, and conversation history.
-            This action cannot be undone.
+            This will permanently delete your account, schedules, and conversation history. This
+            action cannot be undone.
           </p>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={() => setShowDeleteDialog(false)}>

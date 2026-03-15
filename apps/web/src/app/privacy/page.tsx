@@ -94,8 +94,8 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>Provide, maintain, and improve the Service.</li>
               <li>
-                Send you personalized check-in messages, reminders, and motivational content via WhatsApp
-                and voice calls based on your configured schedules.
+                Send you personalized check-in messages, reminders, and motivational content via
+                WhatsApp and voice calls based on your configured schedules.
               </li>
               <li>
                 Generate AI-powered responses and coaching messages tailored to your goals and
@@ -121,10 +121,10 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
                 <span className="font-medium">Service providers:</span> We use third-party providers
-                to operate the Service, including Twilio (WhatsApp and voice delivery), Stripe (payment
-                processing), and AI providers (message generation). These providers access your data
-                only as necessary to perform their services and are bound by contractual obligations
-                to protect your information.
+                to operate the Service, including Twilio (WhatsApp and voice delivery), Stripe
+                (payment processing), and AI providers (message generation). These providers access
+                your data only as necessary to perform their services and are bound by contractual
+                obligations to protect your information.
               </li>
               <li>
                 <span className="font-medium">Legal requirements:</span> We may disclose your
@@ -178,8 +178,8 @@ export default function PrivacyPolicyPage() {
                 account and all associated data from the Settings page.
               </li>
               <li>
-                <span className="font-medium">Opt out of WhatsApp:</span> Send STOP to Aura on WhatsApp
-                or disable WhatsApp in your notification settings.
+                <span className="font-medium">Opt out of WhatsApp:</span> Send STOP to Aura on
+                WhatsApp or disable WhatsApp in your notification settings.
               </li>
               <li>
                 <span className="font-medium">Opt out of voice calls:</span> Disable voice calls in
@@ -197,9 +197,9 @@ export default function PrivacyPolicyPage() {
             <p>
               When you opt in to WhatsApp or voice communications, you consent to receive recurring
               automated messages from Aura related to your goals and schedules. Message frequency
-              varies based on your configured schedules. Data rates may apply. You can
-              opt out at any time by sending STOP on WhatsApp, disabling notifications in your
-              settings, or contacting us at the address below.
+              varies based on your configured schedules. Data rates may apply. You can opt out at
+              any time by sending STOP on WhatsApp, disabling notifications in your settings, or
+              contacting us at the address below.
             </p>
             <p className="mt-2">
               Your phone number and messaging consent information will not be shared with third

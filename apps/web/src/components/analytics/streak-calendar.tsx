@@ -105,7 +105,10 @@ export function StreakCalendar({ data }: StreakCalendarProps) {
                 key={i}
                 className="text-[11px] text-muted-foreground"
                 style={{
-                  marginLeft: i === 0 ? `${m.col * 15}px` : `${(m.col - (months[i - 1]?.col ?? 0) - 1) * 15}px`,
+                  marginLeft:
+                    i === 0
+                      ? `${m.col * 15}px`
+                      : `${(m.col - (months[i - 1]?.col ?? 0) - 1) * 15}px`,
                 }}
               >
                 {m.label}

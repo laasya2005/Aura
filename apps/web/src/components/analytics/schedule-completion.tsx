@@ -79,9 +79,7 @@ export function ScheduleCompletion({
             className="flex items-center justify-between rounded-xl px-3 py-2.5 -mx-3 hover:bg-accent transition-all duration-200"
           >
             <div className="min-w-0">
-              <p className="text-[15px] font-medium truncate">
-                {s.label ?? formatEnum(s.type)}
-              </p>
+              <p className="text-[15px] font-medium truncate">{s.label ?? formatEnum(s.type)}</p>
               <p className="text-[13px] text-muted-foreground">
                 {formatEnum(s.channel)} &middot; {s.completed}/{s.total} done
               </p>

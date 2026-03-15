@@ -95,7 +95,9 @@ export default function DashboardPage() {
             <p className="text-[32px] font-bold tracking-tight leading-none">
               {activeSchedules.length}
             </p>
-            <p className="text-[14px] text-muted-foreground mt-0.5">active schedule{activeSchedules.length !== 1 ? "s" : ""}</p>
+            <p className="text-[14px] text-muted-foreground mt-0.5">
+              active schedule{activeSchedules.length !== 1 ? "s" : ""}
+            </p>
           </div>
 
           {/* Divider */}
@@ -138,7 +140,9 @@ export default function DashboardPage() {
             {conversations.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-[17px] text-muted-foreground">Nothing here yet.</p>
-                <p className="text-[14px] text-muted-foreground/60 mt-1">Conversations from voice and WhatsApp will appear here.</p>
+                <p className="text-[14px] text-muted-foreground/60 mt-1">
+                  Conversations from voice and WhatsApp will appear here.
+                </p>
               </div>
             ) : (
               <div className="space-y-0.5">
@@ -186,7 +190,9 @@ export default function DashboardPage() {
             {activeSchedules.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-[17px] text-muted-foreground">No schedules yet.</p>
-                <p className="text-[14px] text-muted-foreground/60 mt-1">Set up when Aura should check in with you.</p>
+                <p className="text-[14px] text-muted-foreground/60 mt-1">
+                  Set up when Aura should check in with you.
+                </p>
                 <Link href="/schedules">
                   <Button size="sm" className="mt-5">
                     Create schedule
@@ -197,8 +203,7 @@ export default function DashboardPage() {
               <div className="space-y-0.5">
                 {activeSchedules.slice(0, 5).map((schedule) => {
                   const channelEmoji = schedule.channel === "VOICE" ? "📞" : "💬";
-                  const label =
-                    schedule.metadata?.label ?? formatEnum(schedule.type);
+                  const label = schedule.metadata?.label ?? formatEnum(schedule.type);
 
                   return (
                     <div

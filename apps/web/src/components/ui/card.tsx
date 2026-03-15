@@ -17,14 +17,22 @@ Card.displayName = "Card";
 
 const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-1.5 px-6 pt-6 pb-3", className)} {...props} />
+    <div
+      ref={ref}
+      className={cn("flex flex-col space-y-1.5 px-6 pt-6 pb-3", className)}
+      {...props}
+    />
   )
 );
 CardHeader.displayName = "CardHeader";
 
 const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("text-[19px] font-semibold leading-tight tracking-tight", className)} {...props} />
+    <h3
+      ref={ref}
+      className={cn("text-[19px] font-semibold leading-tight tracking-tight", className)}
+      {...props}
+    />
   )
 );
 CardTitle.displayName = "CardTitle";

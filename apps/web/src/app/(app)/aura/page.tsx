@@ -17,12 +17,48 @@ interface AuraProfile {
 }
 
 const MODES = [
-  { value: "GLOW", name: "Glow", emoji: "✨", desc: "Warm, supportive, encouraging", vibe: "Like a best friend cheering you on" },
-  { value: "FLAME", name: "Flame", emoji: "🔥", desc: "Bold, motivating, no-nonsense", vibe: "Tough love that gets results" },
-  { value: "MIRROR", name: "Mirror", emoji: "🪞", desc: "Thoughtful, reflective, insightful", vibe: "Asks the right questions" },
-  { value: "TIDE", name: "Tide", emoji: "🌊", desc: "Calm, zen, grounding", vibe: "Mindful nudges and patience" },
-  { value: "VOLT", name: "Volt", emoji: "⚡", desc: "Energetic, fun, hype", vibe: "Maximum energy to pump you up" },
-  { value: "CUSTOM", name: "Custom", emoji: "🎨", desc: "Your own blend", vibe: "Design it from scratch" },
+  {
+    value: "GLOW",
+    name: "Glow",
+    emoji: "✨",
+    desc: "Warm, supportive, encouraging",
+    vibe: "Like a best friend cheering you on",
+  },
+  {
+    value: "FLAME",
+    name: "Flame",
+    emoji: "🔥",
+    desc: "Bold, motivating, no-nonsense",
+    vibe: "Tough love that gets results",
+  },
+  {
+    value: "MIRROR",
+    name: "Mirror",
+    emoji: "🪞",
+    desc: "Thoughtful, reflective, insightful",
+    vibe: "Asks the right questions",
+  },
+  {
+    value: "TIDE",
+    name: "Tide",
+    emoji: "🌊",
+    desc: "Calm, zen, grounding",
+    vibe: "Mindful nudges and patience",
+  },
+  {
+    value: "VOLT",
+    name: "Volt",
+    emoji: "⚡",
+    desc: "Energetic, fun, hype",
+    vibe: "Maximum energy to pump you up",
+  },
+  {
+    value: "CUSTOM",
+    name: "Custom",
+    emoji: "🎨",
+    desc: "Your own blend",
+    vibe: "Design it from scratch",
+  },
 ];
 
 const SLIDERS = [
@@ -138,7 +174,9 @@ export default function AuraPage() {
                     <span className="text-[14px] text-muted-foreground tabular-nums">{value}%</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-[13px] text-muted-foreground w-20 text-right">{slider.low}</span>
+                    <span className="text-[13px] text-muted-foreground w-20 text-right">
+                      {slider.low}
+                    </span>
                     <input
                       type="range"
                       min="0"

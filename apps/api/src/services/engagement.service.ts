@@ -127,21 +127,23 @@ export class EngagementService {
     });
 
     // Count unique engagement days
-    const engagementDays = new Set(
-      engagements.map((e) => toDateKey(e.createdAt))
-    );
+    const engagementDays = new Set(engagements.map((e) => toDateKey(e.createdAt)));
 
     // Calculate total expected days (days since start or schedule creation, whichever is later)
-    const effectiveStart = activeSchedules.length > 0
-      ? new Date(Math.max(
-          startDate.getTime(),
-          Math.min(...activeSchedules.map((s) => s.createdAt.getTime()))
-        ))
-      : startDate;
+    const effectiveStart =
+      activeSchedules.length > 0
+        ? new Date(
+            Math.max(
+              startDate.getTime(),
+              Math.min(...activeSchedules.map((s) => s.createdAt.getTime()))
+            )
+          )
+        : startDate;
 
-    const totalDays = Math.max(1, Math.ceil(
-      (endDate.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60 * 24)
-    ));
+    const totalDays = Math.max(
+      1,
+      Math.ceil((endDate.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60 * 24))
+    );
 
     const totalCompleted = engagementDays.size;
     const totalMissed = Math.max(0, totalDays - totalCompleted);
@@ -185,16 +187,19 @@ export class EngagementService {
 
     if (executions.length > 0) {
       // Use actual execution records
-      const bySchedule = new Map<string, {
-        scheduleId: string;
-        type: string;
-        channel: string;
-        label: string | null;
-        total: number;
-        completed: number;
-        missed: number;
-        pending: number;
-      }>();
+      const bySchedule = new Map<
+        string,
+        {
+          scheduleId: string;
+          type: string;
+          channel: string;
+          label: string | null;
+          total: number;
+          completed: number;
+          missed: number;
+          pending: number;
+        }
+      >();
 
       for (const exec of executions) {
         if (!bySchedule.has(exec.scheduleId)) {
@@ -204,7 +209,10 @@ export class EngagementService {
             type: exec.schedule.type,
             channel: exec.schedule.channel,
             label,
-            total: 0, completed: 0, missed: 0, pending: 0,
+            total: 0,
+            completed: 0,
+            missed: 0,
+            pending: 0,
           });
         }
         const stats = bySchedule.get(exec.scheduleId)!;
@@ -224,10 +232,13 @@ export class EngagementService {
       // No execution records yet — derive from engagement data per schedule
       for (const sched of activeSchedules) {
         const label = (sched.metadata as { label?: string } | null)?.label ?? null;
-        const schedDays = Math.max(1, Math.ceil(
-          (endDate.getTime() - Math.max(sched.createdAt.getTime(), startDate.getTime())) /
-          (1000 * 60 * 60 * 24)
-        ));
+        const schedDays = Math.max(
+          1,
+          Math.ceil(
+            (endDate.getTime() - Math.max(sched.createdAt.getTime(), startDate.getTime())) /
+              (1000 * 60 * 60 * 24)
+          )
+        );
         // Count engagement days on this schedule's channel
         const channelEngagements = engagements.filter((e) => e.channel === sched.channel);
         const channelDays = new Set(channelEngagements.map((e) => toDateKey(e.createdAt))).size;

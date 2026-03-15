@@ -98,11 +98,7 @@ export function Sidebar() {
               className="rounded-[8px] p-2 text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
               title={theme === "dark" ? "Light mode" : "Dark mode"}
             >
-              {theme === "dark" ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <button
               onClick={handleLogout}

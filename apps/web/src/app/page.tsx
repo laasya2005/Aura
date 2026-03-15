@@ -47,12 +47,7 @@ const plans = [
     name: "Pro",
     price: "$9",
     period: "/mo",
-    features: [
-      "WhatsApp + Web chat",
-      "25 schedules",
-      "Custom blend",
-      "5 voice calls/mo",
-    ],
+    features: ["WhatsApp + Web chat", "25 schedules", "Custom blend", "5 voice calls/mo"],
     popular: true,
   },
   {
@@ -129,8 +124,8 @@ export default function LandingPage() {
             variants={fadeUp}
             className="mt-6 text-lg text-muted-foreground sm:text-xl max-w-2xl mx-auto"
           >
-            Aura sends personalized texts, voice calls, and messages to keep you accountable
-            with the personality <em>you</em> choose.
+            Aura sends personalized texts, voice calls, and messages to keep you accountable with
+            the personality <em>you</em> choose.
           </motion.p>
           <motion.div variants={fadeUp} className="mt-8 flex gap-4 justify-center flex-wrap">
             <Link href="/login">

@@ -122,8 +122,7 @@ function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
         {recent.map((day) => {
           const whatsappH = (day.WHATSAPP / maxTotal) * 100;
           const voiceH = (day.VOICE / maxTotal) * 100;
-          const isToday =
-            new Date(day.date).toDateString() === new Date().toDateString();
+          const isToday = new Date(day.date).toDateString() === new Date().toDateString();
 
           return (
             <div
@@ -134,7 +133,9 @@ function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
               {/* Tooltip on hover */}
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                 <div className="bg-card border border-border rounded-lg px-2.5 py-1.5 shadow-lg whitespace-nowrap">
-                  <p className="text-[12px] font-medium">{day.total} check-in{day.total !== 1 ? "s" : ""}</p>
+                  <p className="text-[12px] font-medium">
+                    {day.total} check-in{day.total !== 1 ? "s" : ""}
+                  </p>
                 </div>
               </div>
 
@@ -156,9 +157,7 @@ function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
                     style={{ height: `${whatsappH}%`, minHeight: day.WHATSAPP > 0 ? 3 : 0 }}
                   />
                 )}
-                {day.total === 0 && (
-                  <div className="w-full rounded-[4px] bg-border/40 h-[3px]" />
-                )}
+                {day.total === 0 && <div className="w-full rounded-[4px] bg-border/40 h-[3px]" />}
               </div>
 
               {/* Day label */}
@@ -192,9 +191,7 @@ function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
 
 /* ── Channel bars (replaces pie chart) ── */
 function ChannelBars({ data }: { data: Record<string, number> }) {
-  const channels = Object.entries(data).filter(
-    ([ch]) => ch === "WHATSAPP" || ch === "VOICE"
-  );
+  const channels = Object.entries(data).filter(([ch]) => ch === "WHATSAPP" || ch === "VOICE");
   const total = channels.reduce((a, [, b]) => a + b, 0);
 
   if (total === 0) {
@@ -228,7 +225,9 @@ function ChannelBars({ data }: { data: Record<string, number> }) {
         <div key={channel} className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={cn("h-3 w-3 rounded-full", colors[channel])} />
-            <span className="text-[16px] font-medium">{channel === "WHATSAPP" ? "WhatsApp" : "Voice"}</span>
+            <span className="text-[16px] font-medium">
+              {channel === "WHATSAPP" ? "WhatsApp" : "Voice"}
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[16px] font-bold tabular-nums">{count}</span>
@@ -278,9 +277,7 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div>
         <h1 className="text-[28px] font-bold tracking-tight">Analytics</h1>
-        <p className="text-base text-muted-foreground mt-1">
-          Your engagement overview.
-        </p>
+        <p className="text-base text-muted-foreground mt-1">Your engagement overview.</p>
       </div>
 
       {/* Hero: Streak + Completion ring side by side */}
@@ -301,9 +298,7 @@ export default function AnalyticsPage() {
               <span className="text-[64px] font-bold tracking-tighter leading-none">
                 {summary.currentStreak}
               </span>
-              <span className="text-[22px] text-muted-foreground font-medium">
-                day streak
-              </span>
+              <span className="text-[22px] text-muted-foreground font-medium">day streak</span>
             </div>
 
             <div className="mt-8 flex gap-8">
