@@ -49,7 +49,11 @@ export async function addScheduleJob(
   return job.id;
 }
 
-export async function removeScheduleJob(scheduleId: string, scheduleType: string, channel?: string): Promise<void> {
+export async function removeScheduleJob(
+  scheduleId: string,
+  scheduleType: string,
+  channel?: string
+): Promise<void> {
   // Check all possible queues this schedule could be in
   const queueNames = new Set<QueueName>();
   const primary = SCHEDULE_TYPE_TO_QUEUE[scheduleType];
@@ -109,9 +113,23 @@ export async function addStreakUpdateJob(userId: string, goalId: string): Promis
  * Re-register all enabled schedules from the database into BullMQ.
  * Call on worker startup so jobs survive Redis restarts.
  */
-export async function rehydrateSchedules(
-  prisma: { schedule: { findMany: (args: { where: { enabled: boolean }; select: { id: true; userId: true; type: true; cronExpr: true; timezone: true; channel: true } }) => Promise<Array<{ id: string; userId: string; type: string; cronExpr: string; timezone: string; channel: string }>> } }
-): Promise<number> {
+export async function rehydrateSchedules(prisma: {
+  schedule: {
+    findMany: (args: {
+      where: { enabled: boolean };
+      select: { id: true; userId: true; type: true; cronExpr: true; timezone: true; channel: true };
+    }) => Promise<
+      Array<{
+        id: string;
+        userId: string;
+        type: string;
+        cronExpr: string;
+        timezone: string;
+        channel: string;
+      }>
+    >;
+  };
+}): Promise<number> {
   const schedules = await prisma.schedule.findMany({
     where: { enabled: true },
     select: { id: true, userId: true, type: true, cronExpr: true, timezone: true, channel: true },

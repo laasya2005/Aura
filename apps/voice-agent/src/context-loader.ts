@@ -2,11 +2,11 @@ import type { PrismaClient } from "@aura/db";
 
 // Voice IDs available on ElevenLabs free tier
 const MODE_VOICE_MAP: Record<string, string> = {
-  GLOW: "cgSgspJ2msm6clMCkdW9",  // Jessica - Playful, Bright, Warm
-  FLAME: "IKne3meq5aSn9XLyUdCD",  // Charlie - Deep, Confident, Energetic
-  MIRROR: "pNInz6obpgDQGcFmaJgB",  // Adam - Dominant, Firm
-  TIDE: "EXAVITQu4vr4xnSDxMaL",   // Sarah - Mature, Reassuring
-  VOLT: "TX3LPaxmHKxFdv7VOQHJ",   // Liam - Energetic, Social Media Creator
+  GLOW: "cgSgspJ2msm6clMCkdW9", // Jessica - Playful, Bright, Warm
+  FLAME: "IKne3meq5aSn9XLyUdCD", // Charlie - Deep, Confident, Energetic
+  MIRROR: "pNInz6obpgDQGcFmaJgB", // Adam - Dominant, Firm
+  TIDE: "EXAVITQu4vr4xnSDxMaL", // Sarah - Mature, Reassuring
+  VOLT: "TX3LPaxmHKxFdv7VOQHJ", // Liam - Energetic, Social Media Creator
 };
 const DEFAULT_VOICE_ID = "cgSgspJ2msm6clMCkdW9"; // Jessica
 
@@ -64,13 +64,18 @@ export async function loadVoiceContext(
     firstName: user.firstName,
     timezone: user.timezone,
     plan: user.plan,
-    goals: user.goals.map((g: { title: string; category: string; currentStreak: number; status: string }) => ({
-      title: g.title,
-      category: g.category,
-      currentStreak: g.currentStreak,
-      status: g.status,
+    goals: user.goals.map(
+      (g: { title: string; category: string; currentStreak: number; status: string }) => ({
+        title: g.title,
+        category: g.category,
+        currentStreak: g.currentStreak,
+        status: g.status,
+      })
+    ),
+    memories: user.memories.map((m: { type: string; content: string }) => ({
+      type: m.type,
+      content: m.content,
     })),
-    memories: user.memories.map((m: { type: string; content: string }) => ({ type: m.type, content: m.content })),
   };
 
   return { auraContext, userContext };
@@ -96,14 +101,14 @@ export async function buildVoiceSystemPrompt(
 
   // Dynamic import to avoid ESM/CJS mismatch
   const { buildSystemPrompt } = await import("@aura/ai");
-  const basePrompt = buildSystemPrompt(auraContext as Parameters<typeof buildSystemPrompt>[0], userContext);
+  const basePrompt = buildSystemPrompt(
+    auraContext as Parameters<typeof buildSystemPrompt>[0],
+    userContext
+  );
   return basePrompt + VOICE_RULES;
 }
 
-export async function getVoiceIdForUser(
-  prisma: PrismaClient,
-  userId: string
-): Promise<string> {
+export async function getVoiceIdForUser(prisma: PrismaClient, userId: string): Promise<string> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { auraProfile: true },

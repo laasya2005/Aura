@@ -52,17 +52,18 @@ async function main() {
 
   console.log("Step 2: Setting termination URI...");
   // LiveKit SIP endpoint - strip protocol prefix and trailing slash
-  const livekitHost = livekitUrl.replace(/^wss?:\/\//, "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const livekitHost = livekitUrl
+    .replace(/^wss?:\/\//, "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
 
-  await twilioClient.trunking.v1
-    .trunks(trunk.sid)
-    .originationUrls.create({
-      friendlyName: "LiveKit SIP",
-      sipUrl: `sip:${livekitHost}`,
-      priority: 1,
-      weight: 1,
-      enabled: true,
-    });
+  await twilioClient.trunking.v1.trunks(trunk.sid).originationUrls.create({
+    friendlyName: "LiveKit SIP",
+    sipUrl: `sip:${livekitHost}`,
+    priority: 1,
+    weight: 1,
+    enabled: true,
+  });
   console.log(`  Origination URI set to: sip:${livekitHost}`);
 
   console.log("Step 3: Associating phone number with trunk...");
@@ -75,9 +76,7 @@ async function main() {
   }
   const phoneNumberSid = incomingNumbers[0].sid;
 
-  await twilioClient.trunking.v1
-    .trunks(trunk.sid)
-    .phoneNumbers.create({ phoneNumberSid });
+  await twilioClient.trunking.v1.trunks(trunk.sid).phoneNumbers.create({ phoneNumberSid });
   console.log(`  Phone number ${phoneNumber} associated with trunk`);
 
   console.log("Step 4: Creating LiveKit outbound SIP trunk...");

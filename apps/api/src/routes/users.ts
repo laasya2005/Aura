@@ -35,10 +35,13 @@ export default async function userRoutes(server: FastifyInstance) {
   });
 
   // POST /users/me/onboarding/complete
-  server.post("/users/me/onboarding/complete", async (request: FastifyRequest, reply: FastifyReply) => {
-    await userService.completeOnboarding(request.user!.sub, request.ip);
-    return reply.send({ success: true, data: { message: "Onboarding complete" } });
-  });
+  server.post(
+    "/users/me/onboarding/complete",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      await userService.completeOnboarding(request.user!.sub, request.ip);
+      return reply.send({ success: true, data: { message: "Onboarding complete" } });
+    }
+  );
 
   // POST /users/me/consent
   server.post("/users/me/consent", async (request: FastifyRequest, reply: FastifyReply) => {

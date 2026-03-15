@@ -65,19 +65,19 @@ export default defineAgent({
       try {
         const [prompt, vid] = await Promise.all([
           buildVoiceSystemPrompt(prisma, userId),
-          metadata?.voiceId
-            ? Promise.resolve(metadata.voiceId)
-            : getVoiceIdForUser(prisma, userId),
+          metadata?.voiceId ? Promise.resolve(metadata.voiceId) : getVoiceIdForUser(prisma, userId),
         ]);
         systemPrompt = prompt;
         voiceId = vid;
       } catch (err) {
         console.error("[voice-agent] Failed to load user context, using defaults:", err);
-        systemPrompt = "You are Aura, a friendly AI companion on a phone call. Keep responses short and natural.";
+        systemPrompt =
+          "You are Aura, a friendly AI companion on a phone call. Keep responses short and natural.";
         voiceId = DEFAULT_VOICE_ID;
       }
     } else {
-      systemPrompt = "You are Aura, a friendly AI companion on a phone call. Keep responses short and natural.";
+      systemPrompt =
+        "You are Aura, a friendly AI companion on a phone call. Keep responses short and natural.";
       voiceId = DEFAULT_VOICE_ID;
     }
 
