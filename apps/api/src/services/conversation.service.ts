@@ -10,7 +10,6 @@ import {
   SAFETY_DISCLAIMER,
   type AuraContext,
   type UserContext,
-  type ChatMessage,
 } from "@aura/ai";
 import { AppError, ErrorCode, type AuditLogger, AuditActions, type Channel } from "@aura/shared";
 

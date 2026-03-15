@@ -89,9 +89,9 @@ function escapeXml(text: string): string {
 
 // Plan-based call limits per month
 export const MONTHLY_CALL_LIMITS: Record<string, number> = {
-  FREE: 3,
-  PRO: 5,
-  ELITE: 20,
+  FREE: 10,
+  PRO: 30,
+  ELITE: 100,
 };
 
 export function _setVoiceClient(mockClient: ReturnType<typeof Twilio> | null): void {

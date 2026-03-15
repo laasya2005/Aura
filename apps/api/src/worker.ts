@@ -22,7 +22,6 @@ import {
   formatForSms,
   trySendWhatsApp,
   formatForWhatsApp,
-  isQuietHours,
   initiateCall,
   MONTHLY_CALL_LIMITS,
   createRoom,
@@ -87,186 +86,62 @@ async function sendWithFallback(tag: string, phone: string, content: string): Pr
   console.log(`[${tag}] SMS fallback sent to ${maskPhone(phone)} sid=${result.sid}`);
 }
 
-// --- Morning Text Worker ---
-const morningWorker = createMorningTextWorker(async (data) => {
-  const user = await prisma.user.findUnique({
-    where: { id: data.userId },
-    select: { phone: true, timezone: true, status: true },
-  });
-  if (!user || user.status === "DELETED" || user.status === "PAUSED") return;
-
-  if (isQuietHours(user.timezone ?? "America/New_York")) {
-    console.log(`[morning-text] Skipping for ${data.userId} — quiet hours`);
-    return;
-  }
-
-  const { label, channel } = await getScheduleInfo(data.scheduleId);
-
-  // WEB channel: generate and store message in conversation (user sees it in chat)
-  if (channel === "WEB") {
-    await conversationService.generateProactiveMessage(data.userId, "morning", "WEB", label);
-    console.log(`[morning-text] WEB message stored for ${data.userId}`);
-    return;
-  }
-
-  // WhatsApp/SMS channel
-  const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
-  const hasSMS = await hasActiveConsent(data.userId, "SMS");
-  if (!hasWA && !hasSMS) {
-    console.log(`[morning-text] Skipping for ${data.userId} — no messaging consent`);
-    return;
-  }
-
-  const { content } = await conversationService.generateProactiveMessage(
-    data.userId,
-    "morning",
-    hasWA ? "WHATSAPP" : "SMS",
-    label
-  );
-
-  await sendWithFallback("morning-text", user.phone, content);
-});
-
-// --- Check-In Worker ---
-const checkInWorker = createCheckInWorker(async (data) => {
-  const user = await prisma.user.findUnique({
-    where: { id: data.userId },
-    select: { phone: true, timezone: true, status: true },
-  });
-  if (!user || user.status === "DELETED" || user.status === "PAUSED") return;
-
-  if (isQuietHours(user.timezone ?? "America/New_York")) {
-    console.log(`[check-in] Skipping for ${data.userId} — quiet hours`);
-    return;
-  }
-
-  const { label, channel } = await getScheduleInfo(data.scheduleId);
-
-  // WEB channel: generate and store message in conversation
-  if (channel === "WEB") {
-    await conversationService.generateProactiveMessage(data.userId, "check_in", "WEB", label);
-    console.log(`[check-in] WEB message stored for ${data.userId}`);
-    return;
-  }
-
-  // WhatsApp/SMS channel
-  const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
-  const hasSMS = await hasActiveConsent(data.userId, "SMS");
-  if (!hasWA && !hasSMS) {
-    console.log(`[check-in] Skipping for ${data.userId} — no messaging consent`);
-    return;
-  }
-
-  const { content } = await conversationService.generateProactiveMessage(
-    data.userId,
-    "check_in",
-    hasWA ? "WHATSAPP" : "SMS",
-    label
-  );
-
-  await sendWithFallback("check-in", user.phone, content);
-});
-
-// --- Evening Recap Worker ---
-const eveningWorker = createEveningRecapWorker(async (data) => {
-  const user = await prisma.user.findUnique({
-    where: { id: data.userId },
-    select: { phone: true, timezone: true, status: true },
-  });
-  if (!user || user.status === "DELETED" || user.status === "PAUSED") return;
-
-  if (isQuietHours(user.timezone ?? "America/New_York")) {
-    console.log(`[evening-recap] Skipping for ${data.userId} — quiet hours`);
-    return;
-  }
-
-  const { label, channel } = await getScheduleInfo(data.scheduleId);
-
-  // WEB channel: generate and store message in conversation
-  if (channel === "WEB") {
-    await conversationService.generateProactiveMessage(data.userId, "evening", "WEB", label);
-    console.log(`[evening-recap] WEB message stored for ${data.userId}`);
-    return;
-  }
-
-  // WhatsApp/SMS channel
-  const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
-  const hasSMS = await hasActiveConsent(data.userId, "SMS");
-  if (!hasWA && !hasSMS) {
-    console.log(`[evening-recap] Skipping for ${data.userId} — no messaging consent`);
-    return;
-  }
-
-  const { content } = await conversationService.generateProactiveMessage(
-    data.userId,
-    "evening",
-    hasWA ? "WHATSAPP" : "SMS",
-    label
-  );
-
-  await sendWithFallback("evening-recap", user.phone, content);
-});
-
-// --- Voice Call Worker ---
 const voiceEngine = process.env.VOICE_ENGINE ?? "twilio";
 
-const voiceWorker = createVoiceCallWorker(async (data) => {
-  const user = await prisma.user.findUnique({
-    where: { id: data.userId },
-    select: { phone: true, timezone: true, status: true, plan: true },
-  });
-  if (!user || user.status === "DELETED" || user.status === "PAUSED") return;
+/**
+ * Initiate a voice call. Shared by all workers when channel is VOICE.
+ */
+async function initiateVoiceCall(
+  tag: string,
+  userId: string,
+  phone: string,
+  plan: string,
+  scheduleId?: string
+): Promise<void> {
+  console.log(`[${tag}] VOICE call flow started for ${userId}`);
 
-  if (!(await hasActiveConsent(data.userId, "VOICE"))) {
-    console.log(`[voice-call] Skipping for ${data.userId} — no VOICE consent`);
+  if (!(await hasActiveConsent(userId, "VOICE"))) {
+    console.log(`[${tag}] BLOCKED: no VOICE consent for ${userId}`);
     return;
   }
+  console.log(`[${tag}] VOICE consent OK`);
 
-  // Check monthly call limit
-  const limit = MONTHLY_CALL_LIMITS[user.plan] ?? 0;
+  const limit = MONTHLY_CALL_LIMITS[plan] ?? 0;
   if (limit === 0) {
-    console.log(`[voice-call] Skipping for ${data.userId} — plan doesn't include calls`);
+    console.log(`[${tag}] BLOCKED: plan "${plan}" doesn't include calls`);
     return;
   }
 
-  // Count calls this month
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
   const callCount = await prisma.message.count({
-    where: {
-      conversation: { userId: data.userId },
-      channel: "VOICE",
-      createdAt: { gte: monthStart },
-    },
+    where: { conversation: { userId }, channel: "VOICE", createdAt: { gte: monthStart } },
   });
   if (callCount >= limit) {
-    console.log(
-      `[voice-call] Skipping for ${data.userId} — monthly limit reached (${callCount}/${limit})`
-    );
+    console.log(`[${tag}] BLOCKED: monthly limit reached (${callCount}/${limit})`);
     return;
   }
+  console.log(`[${tag}] Monthly limit OK (${callCount}/${limit})`);
 
   if (voiceEngine === "livekit") {
-    // Get schedule label and user name for the voice agent greeting
-    const { label: scheduleLabel } = await getScheduleInfo(data.scheduleId);
+    const { label: scheduleLabel } = await getScheduleInfo(scheduleId);
     const userInfo = await prisma.user.findUnique({
-      where: { id: data.userId },
+      where: { id: userId },
       select: { firstName: true },
     });
 
-    const roomName = `aura-voice-${data.userId}-${Date.now()}`;
+    const roomName = `aura-voice-${userId}-${Date.now()}`;
     const metadata = JSON.stringify({
-      userId: data.userId,
+      userId,
       firstName: userInfo?.firstName || null,
       scheduleLabel: scheduleLabel || null,
-      scheduleId: data.scheduleId || null,
+      scheduleId: scheduleId || null,
     });
 
     await createRoom(roomName, metadata);
-    console.log(`[voice-call] LiveKit room created: ${roomName}`);
+    console.log(`[${tag}] LiveKit room created: ${roomName}`);
 
-    // Dispatch the voice agent to the room
     const { AgentDispatchClient } = await import("livekit-server-sdk");
     const agentClient = new AgentDispatchClient(
       process.env.LIVEKIT_URL!,
@@ -274,23 +149,174 @@ const voiceWorker = createVoiceCallWorker(async (data) => {
       process.env.LIVEKIT_API_SECRET!
     );
     await agentClient.createDispatch(roomName, "aura-voice");
-    console.log(`[voice-call] Agent dispatched to ${roomName}`);
+    console.log(`[${tag}] Agent dispatched`);
 
-    // Dial the user via SIP outbound trunk
-    const sipTrunkId = process.env.LIVEKIT_SIP_TRUNK_ID;
-    if (!sipTrunkId) throw new Error("LIVEKIT_SIP_TRUNK_ID must be set");
-
-    await dialUserViaSip(roomName, user.phone, `phone-${data.userId}`);
-    console.log(`[voice-call] LiveKit SIP dial initiated for ${data.userId}`);
+    await dialUserViaSip(roomName, phone, `phone-${userId}`);
+    console.log(`[${tag}] SIP dial initiated to ${maskPhone(phone)}`);
   } else {
-    // Twilio fallback: existing TwiML-based flow
     await initiateCall(
-      user.phone,
+      phone,
       `${apiUrl}/webhooks/twilio/voice/answer`,
       `${apiUrl}/webhooks/twilio/voice/status`
     );
-    console.log(`[voice-call] Twilio call initiated for ${data.userId}`);
+    console.log(`[${tag}] Twilio call initiated to ${maskPhone(phone)}`);
   }
+}
+
+// --- Morning Text Worker ---
+const morningWorker = createMorningTextWorker(async (data) => {
+  console.log(`[morning-text] Job fired for userId=${data.userId} scheduleId=${data.scheduleId}`);
+  const user = await prisma.user.findUnique({
+    where: { id: data.userId },
+    select: { phone: true, status: true, plan: true },
+  });
+  if (!user || user.status === "DELETED" || user.status === "PAUSED") {
+    console.log(`[morning-text] BLOCKED: user not found or inactive`);
+    return;
+  }
+
+  const { label, channel } = await getScheduleInfo(data.scheduleId);
+  console.log(`[morning-text] channel=${channel} label="${label}"`);
+
+  if (channel === "VOICE") {
+    await initiateVoiceCall("morning-text", data.userId, user.phone, user.plan, data.scheduleId);
+    return;
+  }
+
+  if (channel === "WEB") {
+    await conversationService.generateProactiveMessage(data.userId, "morning", "WEB", label);
+    console.log(`[morning-text] WEB message stored`);
+    return;
+  }
+
+  const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
+  const hasSMS = await hasActiveConsent(data.userId, "SMS");
+  console.log(`[morning-text] consent: WHATSAPP=${hasWA} SMS=${hasSMS}`);
+  if (!hasWA && !hasSMS) {
+    console.log(`[morning-text] BLOCKED: no messaging consent`);
+    return;
+  }
+
+  console.log(`[morning-text] Generating message...`);
+  const { content } = await conversationService.generateProactiveMessage(
+    data.userId,
+    "morning",
+    hasWA ? "WHATSAPP" : "SMS",
+    label
+  );
+
+  console.log(`[morning-text] Sending to ${maskPhone(user.phone)}...`);
+  await sendWithFallback("morning-text", user.phone, content);
+  console.log(`[morning-text] DONE`);
+});
+
+// --- Check-In Worker ---
+const checkInWorker = createCheckInWorker(async (data) => {
+  console.log(`[check-in] Job fired for userId=${data.userId} scheduleId=${data.scheduleId}`);
+  const user = await prisma.user.findUnique({
+    where: { id: data.userId },
+    select: { phone: true, status: true, plan: true },
+  });
+  if (!user || user.status === "DELETED" || user.status === "PAUSED") {
+    console.log(`[check-in] BLOCKED: user not found or inactive`);
+    return;
+  }
+
+  const { label, channel } = await getScheduleInfo(data.scheduleId);
+  console.log(`[check-in] channel=${channel} label="${label}"`);
+
+  if (channel === "VOICE") {
+    await initiateVoiceCall("check-in", data.userId, user.phone, user.plan, data.scheduleId);
+    return;
+  }
+
+  if (channel === "WEB") {
+    await conversationService.generateProactiveMessage(data.userId, "check_in", "WEB", label);
+    console.log(`[check-in] WEB message stored`);
+    return;
+  }
+
+  const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
+  const hasSMS = await hasActiveConsent(data.userId, "SMS");
+  console.log(`[check-in] consent: WHATSAPP=${hasWA} SMS=${hasSMS}`);
+  if (!hasWA && !hasSMS) {
+    console.log(`[check-in] BLOCKED: no messaging consent`);
+    return;
+  }
+
+  console.log(`[check-in] Generating message...`);
+  const { content } = await conversationService.generateProactiveMessage(
+    data.userId,
+    "check_in",
+    hasWA ? "WHATSAPP" : "SMS",
+    label
+  );
+
+  console.log(`[check-in] Sending to ${maskPhone(user.phone)}...`);
+  await sendWithFallback("check-in", user.phone, content);
+  console.log(`[check-in] DONE`);
+});
+
+// --- Evening Recap Worker ---
+const eveningWorker = createEveningRecapWorker(async (data) => {
+  console.log(`[evening-recap] Job fired for userId=${data.userId} scheduleId=${data.scheduleId}`);
+  const user = await prisma.user.findUnique({
+    where: { id: data.userId },
+    select: { phone: true, status: true, plan: true },
+  });
+  if (!user || user.status === "DELETED" || user.status === "PAUSED") {
+    console.log(`[evening-recap] BLOCKED: user not found or inactive`);
+    return;
+  }
+
+  const { label, channel } = await getScheduleInfo(data.scheduleId);
+  console.log(`[evening-recap] channel=${channel} label="${label}"`);
+
+  if (channel === "VOICE") {
+    await initiateVoiceCall("evening-recap", data.userId, user.phone, user.plan, data.scheduleId);
+    return;
+  }
+
+  if (channel === "WEB") {
+    await conversationService.generateProactiveMessage(data.userId, "evening", "WEB", label);
+    console.log(`[evening-recap] WEB message stored`);
+    return;
+  }
+
+  const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
+  const hasSMS = await hasActiveConsent(data.userId, "SMS");
+  console.log(`[evening-recap] consent: WHATSAPP=${hasWA} SMS=${hasSMS}`);
+  if (!hasWA && !hasSMS) {
+    console.log(`[evening-recap] BLOCKED: no messaging consent`);
+    return;
+  }
+
+  console.log(`[evening-recap] Generating message...`);
+  const { content } = await conversationService.generateProactiveMessage(
+    data.userId,
+    "evening",
+    hasWA ? "WHATSAPP" : "SMS",
+    label
+  );
+
+  console.log(`[evening-recap] Sending to ${maskPhone(user.phone)}...`);
+  await sendWithFallback("evening-recap", user.phone, content);
+  console.log(`[evening-recap] DONE`);
+});
+
+// --- Voice Call Worker ---
+const voiceWorker = createVoiceCallWorker(async (data) => {
+  console.log(`[voice-call] Job fired for userId=${data.userId} scheduleId=${data.scheduleId}`);
+  const user = await prisma.user.findUnique({
+    where: { id: data.userId },
+    select: { phone: true, status: true, plan: true },
+  });
+  if (!user || user.status === "DELETED" || user.status === "PAUSED") {
+    console.log(`[voice-call] BLOCKED: user not found or inactive`);
+    return;
+  }
+
+  await initiateVoiceCall("voice-call", data.userId, user.phone, user.plan, data.scheduleId);
 });
 
 // --- Memory Summary Worker ---

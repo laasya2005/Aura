@@ -2,7 +2,6 @@ import type { PrismaClient, User } from "@aura/db";
 import {
   encrypt,
   decrypt,
-  hashForLookup,
   AppError,
   type AuditLogger,
   AuditActions,

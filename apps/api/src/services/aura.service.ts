@@ -5,7 +5,7 @@ import {
   AuditActions,
   type UpdateAuraProfileInput,
 } from "@aura/shared";
-import { buildPersonalityPrompt, getPresetSliders, PERSONALITY_PRESETS } from "@aura/ai";
+import { buildPersonalityPrompt, getPresetSliders } from "@aura/ai";
 
 export class AuraService {
   constructor(

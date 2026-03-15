@@ -20,7 +20,7 @@ export default async function authRoutes(server: FastifyInstance) {
         throw AppError.validation("Invalid phone number", parsed.error.flatten());
       }
 
-      const result = await authService.sendOtp(parsed.data.phone, request.ip);
+      await authService.sendOtp(parsed.data.phone, request.ip);
 
       return reply.status(200).send({
         success: true,

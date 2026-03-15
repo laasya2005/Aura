@@ -29,7 +29,7 @@ export async function saveTranscript(
     role: entry.role,
     content: entry.content,
     channel: "VOICE" as const,
-    metadata: JSON.parse(JSON.stringify({ source: "livekit" })),
+    metadata: { source: "livekit" },
     createdAt: entry.timestamp ?? new Date(),
   }));
 

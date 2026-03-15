@@ -1,4 +1,4 @@
-import type { PrismaClient, Schedule, Prisma } from "@aura/db";
+import type { PrismaClient, Schedule, Prisma, ConsentType } from "@aura/db";
 import {
   AppError,
   type AuditLogger,
@@ -6,6 +6,13 @@ import {
   type UpdateScheduleInput,
 } from "@aura/shared";
 import { addScheduleJob, removeScheduleJob } from "@aura/queue";
+
+// Map schedule channels to the consent type needed
+const CHANNEL_CONSENT_MAP: Record<string, ConsentType> = {
+  VOICE: "VOICE",
+  WHATSAPP: "WHATSAPP",
+  SMS: "SMS",
+};
 
 const PLAN_SCHEDULE_LIMITS: Record<string, number> = {
   FREE: 10,
@@ -73,6 +80,20 @@ export class ScheduleService {
       metadata: { type: schedule.type, channel: schedule.channel },
       ipAddress: ip,
     });
+
+    // Auto-grant consent for the channel if not already granted (skip if user previously revoked)
+    const consentType = CHANNEL_CONSENT_MAP[schedule.channel];
+    if (consentType) {
+      const existing = await this.prisma.consentRecord.findFirst({
+        where: { userId, type: consentType },
+        orderBy: { grantedAt: "desc" },
+      });
+      if (!existing) {
+        await this.prisma.consentRecord.create({
+          data: { userId, type: consentType, granted: true },
+        });
+      }
+    }
 
     // Create BullMQ repeatable job
     if (schedule.enabled) {

@@ -159,7 +159,7 @@ export default defineAgent({
 
     // Speak greeting immediately — agent.say() sends audio directly via TTS
     // Don't allow interruption during the greeting so it completes
-    const name = firstName ?? "hey";
+    const name = firstName ?? "there";
     let greeting: string;
     if (scheduleLabel) {
       greeting = `Hey ${name}! It's Aura. I'm calling about your ${scheduleLabel}. How did that go today?`;

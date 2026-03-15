@@ -52,7 +52,7 @@ export async function addScheduleJob(
 export async function removeScheduleJob(
   scheduleId: string,
   scheduleType: string,
-  channel?: string
+  _channel?: string
 ): Promise<void> {
   // Check all possible queues this schedule could be in
   const queueNames = new Set<QueueName>();
@@ -63,8 +63,6 @@ export async function removeScheduleJob(
     queueNames.add(QUEUE_NAMES.CHECK_IN);
     queueNames.add(QUEUE_NAMES.VOICE_CALL);
   }
-  // VOICE_CALL always checks voice-call queue
-  queueNames.add(QUEUE_NAMES.VOICE_CALL);
 
   for (const queueName of queueNames) {
     const queue = getQueue(queueName);

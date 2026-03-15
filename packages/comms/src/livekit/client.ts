@@ -41,7 +41,7 @@ export async function createAccessToken(identity: string, roomName: string): Pro
     ttl: "1h",
   });
   at.addGrant({ roomJoin: true, room: roomName });
-  return at.toJwt();
+  return await at.toJwt();
 }
 
 export async function createRoom(
