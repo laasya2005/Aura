@@ -33,7 +33,6 @@ RUN addgroup --system aura && adduser --system --ingroup aura aura
 
 WORKDIR /app
 
-COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
 
