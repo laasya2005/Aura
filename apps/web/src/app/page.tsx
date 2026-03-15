@@ -6,13 +6,14 @@ import {
   MessageCircle,
   Phone,
   Target,
-  Sparkles,
   Zap,
   Shield,
   ArrowRight,
   Star,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AuraLogo } from "@/components/ui/aura-logo";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -40,14 +41,13 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    features: ["10 active goals", "Web chat", "10 schedules", "Preset Aura modes"],
+    features: ["Web chat", "10 schedules", "Preset Aura modes"],
   },
   {
     name: "Pro",
     price: "$9",
     period: "/mo",
     features: [
-      "25 active goals",
       "WhatsApp + Web chat",
       "25 schedules",
       "Custom blend",
@@ -60,7 +60,6 @@ const plans = [
     price: "$19",
     period: "/mo",
     features: [
-      "100 active goals",
       "All channels",
       "100 schedules",
       "Natural language tuning",
@@ -82,8 +81,8 @@ export default function LandingPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-border/30 bg-background/60 backdrop-blur-xl">
         <div className="flex h-16 items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-background" />
+            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center text-background">
+              <AuraLogo />
             </div>
             <span className="text-xl font-bold">Aura</span>
           </Link>
@@ -122,7 +121,7 @@ export default function LandingPage() {
             variants={fadeUp}
             className="text-5xl font-extrabold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl"
           >
-            Your AI companion
+            AI companion
             <br />
             <span className="gradient-text">that actually shows up</span>
           </motion.h1>
@@ -130,8 +129,8 @@ export default function LandingPage() {
             variants={fadeUp}
             className="mt-6 text-lg text-muted-foreground sm:text-xl max-w-2xl mx-auto"
           >
-            Aura sends personalized texts, voice calls, and messages to keep you accountable to your
-            goals with the personality <em>you</em> choose.
+            Aura sends personalized texts, voice calls, and messages to keep you accountable
+            with the personality <em>you</em> choose.
           </motion.p>
           <motion.div variants={fadeUp} className="mt-8 flex gap-4 justify-center flex-wrap">
             <Link href="/login">
@@ -163,7 +162,7 @@ export default function LandingPage() {
               ))}
             </div>
             <span>
-              Loved by <span className="text-foreground font-medium">2,000+</span> goal-crushers
+              Loved by <span className="text-foreground font-medium">2,000+</span> users
             </span>
           </motion.div>
         </motion.div>
@@ -193,13 +192,13 @@ export default function LandingPage() {
           >
             {[
               {
-                icon: Target,
-                title: "Set your goals",
-                desc: "Tell Aura what you want to achieve and track streaks.",
+                icon: Calendar,
+                title: "Set your schedule",
+                desc: "Tell Aura when and how to check in with you.",
                 step: "01",
               },
               {
-                icon: Sparkles,
+                icon: AuraLogo,
                 title: "Choose your Aura",
                 desc: "Pick a personality mode or create a custom blend.",
                 step: "02",
@@ -281,7 +280,7 @@ export default function LandingPage() {
             <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Use cases
             </span>
-            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Built for your goals</h2>
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Built for your routine</h2>
           </motion.div>
           <motion.div
             initial="hidden"
@@ -316,7 +315,7 @@ export default function LandingPage() {
                 emoji: "🌿",
               },
               {
-                icon: Sparkles,
+                icon: Star,
                 title: "Learning",
                 desc: "Study schedules, quiz reminders, knowledge checks.",
                 emoji: "📚",
@@ -440,8 +439,8 @@ export default function LandingPage() {
       <footer className="relative border-t border-border/30 py-8 px-4 text-center text-sm text-muted-foreground">
         <div className="flex items-center justify-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded-md bg-foreground flex items-center justify-center">
-              <Sparkles className="h-2.5 w-2.5 text-background" />
+            <div className="h-5 w-5 rounded-md bg-foreground flex items-center justify-center text-background">
+              <AuraLogo className="h-2.5 w-2.5" />
             </div>
             <span>&copy; {new Date().getFullYear()} Aura</span>
           </div>

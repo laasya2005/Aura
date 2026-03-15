@@ -32,7 +32,7 @@ export class ConversationService {
     userId: string,
     plan: string,
     content: string,
-    channel: Channel = "WEB",
+    channel: Channel = "WHATSAPP",
     ip?: string
   ): Promise<{
     message: { id: string; role: string; content: string; createdAt: Date };
@@ -112,7 +112,7 @@ export class ConversationService {
     try {
       aiResponse = await chat(messages, {
         systemPrompt,
-        maxTokens: channel === "SMS" ? 320 : 1024,
+        maxTokens: 1024,
       });
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
@@ -163,7 +163,7 @@ export class ConversationService {
   async generateProactiveMessage(
     userId: string,
     type: "morning" | "check_in" | "evening",
-    channel: Channel = "SMS",
+    channel: Channel = "WHATSAPP",
     scheduleLabel?: string
   ): Promise<{ content: string; conversationId: string }> {
     const { auraContext, userContext } = await this.loadContext(userId);

@@ -25,7 +25,7 @@ const cronExprSchema = z
 
 export const createScheduleSchema = z.object({
   type: z.enum(["MORNING_TEXT", "CHECK_IN", "EVENING_RECAP", "VOICE_CALL", "CUSTOM"]),
-  channel: z.enum(["SMS", "WHATSAPP", "VOICE", "WEB"]),
+  channel: z.enum(["WHATSAPP", "VOICE"]),
   cronExpr: cronExprSchema,
   timezone: z.string().optional(),
   enabled: z.boolean().optional().default(true),
@@ -34,7 +34,7 @@ export const createScheduleSchema = z.object({
 
 export const updateScheduleSchema = z.object({
   type: z.enum(["MORNING_TEXT", "CHECK_IN", "EVENING_RECAP", "VOICE_CALL", "CUSTOM"]).optional(),
-  channel: z.enum(["SMS", "WHATSAPP", "VOICE", "WEB"]).optional(),
+  channel: z.enum(["WHATSAPP", "VOICE"]).optional(),
   cronExpr: cronExprSchema.optional(),
   timezone: z.string().optional(),
   enabled: z.boolean().optional(),

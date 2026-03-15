@@ -18,9 +18,7 @@ import {
   rehydrateSchedules,
 } from "@aura/queue";
 import {
-  sendSms,
-  formatForSms,
-  trySendWhatsApp,
+  sendWhatsApp,
   formatForWhatsApp,
   initiateCall,
   MONTHLY_CALL_LIMITS,
@@ -36,6 +34,21 @@ const audit = buildAuditLogger(prisma);
 const conversationService = new ConversationService(prisma, redis, audit);
 
 const apiUrl = process.env.API_BASE_URL ?? process.env.API_URL ?? "http://localhost:3001";
+
+async function recordScheduleSent(userId: string, scheduleId: string, channel: string): Promise<void> {
+  try {
+    await prisma.scheduleExecution.create({
+      data: {
+        userId,
+        scheduleId,
+        channel: channel as "WHATSAPP" | "VOICE",
+        status: "SENT",
+      },
+    });
+  } catch (e) {
+    console.warn("[worker] Failed to record schedule execution:", e);
+  }
+}
 
 console.log("[worker] Starting Aura workers...");
 
@@ -67,23 +80,12 @@ async function getScheduleInfo(scheduleId?: string): Promise<{ label?: string; c
 }
 
 /**
- * Send a message via WhatsApp first. If WhatsApp fails (e.g., outside 24hr window),
- * automatically falls back to SMS.
+ * Send a message via WhatsApp.
  */
-async function sendWithFallback(tag: string, phone: string, content: string): Promise<void> {
-  // Try WhatsApp first
+async function sendViaWhatsApp(tag: string, phone: string, content: string): Promise<void> {
   const waBody = formatForWhatsApp(content);
-  const wa = await trySendWhatsApp(phone, waBody);
-  if (wa.success) {
-    console.log(`[${tag}] WhatsApp sent to ${maskPhone(phone)} sid=${wa.result!.sid}`);
-    return;
-  }
-
-  // WhatsApp failed — fall back to SMS
-  console.log(`[${tag}] WhatsApp failed (${wa.error}), falling back to SMS`);
-  const smsBody = formatForSms(content);
-  const result = await sendSms(phone, smsBody);
-  console.log(`[${tag}] SMS fallback sent to ${maskPhone(phone)} sid=${result.sid}`);
+  const result = await sendWhatsApp(phone, waBody);
+  console.log(`[${tag}] WhatsApp sent to ${maskPhone(phone)} sid=${result.sid}`);
 }
 
 const voiceEngine = process.env.VOICE_ENGINE ?? "twilio";
@@ -180,20 +182,14 @@ const morningWorker = createMorningTextWorker(async (data) => {
 
   if (channel === "VOICE") {
     await initiateVoiceCall("morning-text", data.userId, user.phone, user.plan, data.scheduleId);
-    return;
-  }
-
-  if (channel === "WEB") {
-    await conversationService.generateProactiveMessage(data.userId, "morning", "WEB", label);
-    console.log(`[morning-text] WEB message stored`);
+    await recordScheduleSent(data.userId, data.scheduleId, "VOICE");
     return;
   }
 
   const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
-  const hasSMS = await hasActiveConsent(data.userId, "SMS");
-  console.log(`[morning-text] consent: WHATSAPP=${hasWA} SMS=${hasSMS}`);
-  if (!hasWA && !hasSMS) {
-    console.log(`[morning-text] BLOCKED: no messaging consent`);
+  console.log(`[morning-text] consent: WHATSAPP=${hasWA}`);
+  if (!hasWA) {
+    console.log(`[morning-text] BLOCKED: no WhatsApp consent`);
     return;
   }
 
@@ -201,12 +197,13 @@ const morningWorker = createMorningTextWorker(async (data) => {
   const { content } = await conversationService.generateProactiveMessage(
     data.userId,
     "morning",
-    hasWA ? "WHATSAPP" : "SMS",
+    "WHATSAPP",
     label
   );
 
   console.log(`[morning-text] Sending to ${maskPhone(user.phone)}...`);
-  await sendWithFallback("morning-text", user.phone, content);
+  await sendViaWhatsApp("morning-text", user.phone, content);
+  await recordScheduleSent(data.userId, data.scheduleId, "WHATSAPP");
   console.log(`[morning-text] DONE`);
 });
 
@@ -227,20 +224,14 @@ const checkInWorker = createCheckInWorker(async (data) => {
 
   if (channel === "VOICE") {
     await initiateVoiceCall("check-in", data.userId, user.phone, user.plan, data.scheduleId);
-    return;
-  }
-
-  if (channel === "WEB") {
-    await conversationService.generateProactiveMessage(data.userId, "check_in", "WEB", label);
-    console.log(`[check-in] WEB message stored`);
+    await recordScheduleSent(data.userId, data.scheduleId, "VOICE");
     return;
   }
 
   const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
-  const hasSMS = await hasActiveConsent(data.userId, "SMS");
-  console.log(`[check-in] consent: WHATSAPP=${hasWA} SMS=${hasSMS}`);
-  if (!hasWA && !hasSMS) {
-    console.log(`[check-in] BLOCKED: no messaging consent`);
+  console.log(`[check-in] consent: WHATSAPP=${hasWA}`);
+  if (!hasWA) {
+    console.log(`[check-in] BLOCKED: no WhatsApp consent`);
     return;
   }
 
@@ -248,12 +239,13 @@ const checkInWorker = createCheckInWorker(async (data) => {
   const { content } = await conversationService.generateProactiveMessage(
     data.userId,
     "check_in",
-    hasWA ? "WHATSAPP" : "SMS",
+    "WHATSAPP",
     label
   );
 
   console.log(`[check-in] Sending to ${maskPhone(user.phone)}...`);
-  await sendWithFallback("check-in", user.phone, content);
+  await sendViaWhatsApp("check-in", user.phone, content);
+  await recordScheduleSent(data.userId, data.scheduleId, "WHATSAPP");
   console.log(`[check-in] DONE`);
 });
 
@@ -274,20 +266,14 @@ const eveningWorker = createEveningRecapWorker(async (data) => {
 
   if (channel === "VOICE") {
     await initiateVoiceCall("evening-recap", data.userId, user.phone, user.plan, data.scheduleId);
-    return;
-  }
-
-  if (channel === "WEB") {
-    await conversationService.generateProactiveMessage(data.userId, "evening", "WEB", label);
-    console.log(`[evening-recap] WEB message stored`);
+    await recordScheduleSent(data.userId, data.scheduleId, "VOICE");
     return;
   }
 
   const hasWA = await hasActiveConsent(data.userId, "WHATSAPP");
-  const hasSMS = await hasActiveConsent(data.userId, "SMS");
-  console.log(`[evening-recap] consent: WHATSAPP=${hasWA} SMS=${hasSMS}`);
-  if (!hasWA && !hasSMS) {
-    console.log(`[evening-recap] BLOCKED: no messaging consent`);
+  console.log(`[evening-recap] consent: WHATSAPP=${hasWA}`);
+  if (!hasWA) {
+    console.log(`[evening-recap] BLOCKED: no WhatsApp consent`);
     return;
   }
 
@@ -295,12 +281,13 @@ const eveningWorker = createEveningRecapWorker(async (data) => {
   const { content } = await conversationService.generateProactiveMessage(
     data.userId,
     "evening",
-    hasWA ? "WHATSAPP" : "SMS",
+    "WHATSAPP",
     label
   );
 
   console.log(`[evening-recap] Sending to ${maskPhone(user.phone)}...`);
-  await sendWithFallback("evening-recap", user.phone, content);
+  await sendViaWhatsApp("evening-recap", user.phone, content);
+  await recordScheduleSent(data.userId, data.scheduleId, "WHATSAPP");
   console.log(`[evening-recap] DONE`);
 });
 
@@ -317,6 +304,7 @@ const voiceWorker = createVoiceCallWorker(async (data) => {
   }
 
   await initiateVoiceCall("voice-call", data.userId, user.phone, user.plan, data.scheduleId);
+  await recordScheduleSent(data.userId, data.scheduleId, "VOICE");
 });
 
 // --- Memory Summary Worker ---

@@ -73,7 +73,7 @@ async function main() {
     data: {
       userId: user.id,
       type: "MORNING_TEXT",
-      channel: "SMS",
+      channel: "WHATSAPP",
       cronExpr: "0 7 * * *",
       timezone: "America/New_York",
       enabled: true,
@@ -84,7 +84,7 @@ async function main() {
     data: {
       userId: user.id,
       type: "CHECK_IN",
-      channel: "SMS",
+      channel: "WHATSAPP",
       cronExpr: "0 12 * * *",
       timezone: "America/New_York",
       enabled: true,
@@ -97,25 +97,25 @@ async function main() {
   const conversation = await prisma.conversation.create({
     data: {
       userId: user.id,
-      channel: "SMS",
+      channel: "WHATSAPP",
       messages: {
         create: [
           {
             role: "ASSISTANT",
             content:
               "Good morning! Ready to crush your run today? The weather looks perfect for it 🏃‍♂️",
-            channel: "SMS",
+            channel: "WHATSAPP",
           },
           {
             role: "USER",
             content: "Yes! Just lacing up my shoes now",
-            channel: "SMS",
+            channel: "WHATSAPP",
           },
           {
             role: "ASSISTANT",
             content:
               "That's the spirit! Remember, consistency beats intensity. Enjoy every step 💪",
-            channel: "SMS",
+            channel: "WHATSAPP",
           },
         ],
       },
@@ -142,7 +142,7 @@ async function main() {
   await prisma.consentRecord.create({
     data: {
       userId: user.id,
-      type: "SMS",
+      type: "WHATSAPP",
       granted: true,
       ipAddress: "127.0.0.1",
     },

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -18,19 +17,19 @@ interface AuraProfile {
 }
 
 const MODES = [
-  { value: "GLOW", name: "Glow", emoji: "✨", desc: "Warm, supportive, encouraging" },
-  { value: "FLAME", name: "Flame", emoji: "🔥", desc: "Bold, motivating, no-nonsense" },
-  { value: "MIRROR", name: "Mirror", emoji: "🪞", desc: "Thoughtful, reflective, insightful" },
-  { value: "TIDE", name: "Tide", emoji: "🌊", desc: "Calm, zen, grounding" },
-  { value: "VOLT", name: "Volt", emoji: "⚡", desc: "Energetic, fun, hype" },
-  { value: "CUSTOM", name: "Custom", emoji: "🎨", desc: "Design your own blend" },
+  { value: "GLOW", name: "Glow", emoji: "✨", desc: "Warm, supportive, encouraging", vibe: "Like a best friend cheering you on" },
+  { value: "FLAME", name: "Flame", emoji: "🔥", desc: "Bold, motivating, no-nonsense", vibe: "Tough love that gets results" },
+  { value: "MIRROR", name: "Mirror", emoji: "🪞", desc: "Thoughtful, reflective, insightful", vibe: "Asks the right questions" },
+  { value: "TIDE", name: "Tide", emoji: "🌊", desc: "Calm, zen, grounding", vibe: "Mindful nudges and patience" },
+  { value: "VOLT", name: "Volt", emoji: "⚡", desc: "Energetic, fun, hype", vibe: "Maximum energy to pump you up" },
+  { value: "CUSTOM", name: "Custom", emoji: "🎨", desc: "Your own blend", vibe: "Design it from scratch" },
 ];
 
 const SLIDERS = [
-  { key: "warmth", label: "Warmth", low: "Professional", high: "Warm & Caring", emoji: "💛" },
-  { key: "humor", label: "Humor", low: "Serious", high: "Playful", emoji: "😄" },
-  { key: "directness", label: "Directness", low: "Gentle", high: "Blunt", emoji: "💪" },
-  { key: "energy", label: "Energy", low: "Calm", high: "Energetic", emoji: "⚡" },
+  { key: "warmth", label: "Warmth", low: "Professional", high: "Caring" },
+  { key: "humor", label: "Humor", low: "Serious", high: "Playful" },
+  { key: "directness", label: "Directness", low: "Gentle", high: "Blunt" },
+  { key: "energy", label: "Energy", low: "Calm", high: "Energetic" },
 ] as const;
 
 export default function AuraPage() {
@@ -68,100 +67,93 @@ export default function AuraPage() {
     setSaving(false);
   };
 
+  const selectedMode = MODES.find((m) => m.value === profile?.mode);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <div>
-        <h1 className="text-lg font-bold flex items-center gap-2">
-          Aura <span className="text-xl">✨</span>
-        </h1>
-        <p className="text-[13px] text-muted-foreground mt-0.5">
-          Choose how Aura communicates with you.
+        <h1 className="text-[28px] font-bold tracking-tight">Aura</h1>
+        <p className="text-base text-muted-foreground mt-1">
+          Pick a personality and fine-tune how your coach sounds.
         </p>
       </div>
 
-      {/* Mode Selection */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {MODES.map((mode) => {
-          const isSelected = profile?.mode === mode.value;
-          return (
-            <button
-              key={mode.value}
-              onClick={() => selectMode(mode.value)}
-              disabled={saving}
-              className={cn(
-                "group relative flex items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-300",
-                isSelected
-                  ? "border-foreground/20 bg-accent shadow-md"
-                  : "border-border/50 hover:border-foreground/15 hover:bg-accent/50 hover:-translate-y-0.5"
-              )}
-            >
-              <span className="text-2xl flex-shrink-0 transition-transform group-hover:scale-110">
-                {mode.emoji}
-              </span>
-              <div>
-                <p className="text-sm font-bold">{mode.name}</p>
-                <p className="text-2xs text-muted-foreground mt-0.5">{mode.desc}</p>
-              </div>
-              {isSelected && (
-                <span className="absolute top-3 right-3 text-xs font-bold text-foreground">
-                  &#10003;
-                </span>
-              )}
-            </button>
-          );
-        })}
+      {/* Current mode highlight */}
+      {selectedMode && (
+        <div className="rounded-[20px] border border-border/50 bg-card/80 backdrop-blur-xl p-8">
+          <p className="text-[14px] text-muted-foreground font-medium">Current mode</p>
+          <div className="flex items-center gap-4 mt-3">
+            <span className="text-[48px]">{selectedMode.emoji}</span>
+            <div>
+              <p className="text-[28px] font-bold tracking-tight">{selectedMode.name}</p>
+              <p className="text-[15px] text-muted-foreground">{selectedMode.vibe}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mode grid */}
+      <div>
+        <p className="text-[14px] text-muted-foreground font-medium mb-4">All modes</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {MODES.map((mode) => {
+            const isSelected = profile?.mode === mode.value;
+            return (
+              <button
+                key={mode.value}
+                onClick={() => selectMode(mode.value)}
+                disabled={saving}
+                className={cn(
+                  "group relative rounded-[16px] border p-5 text-left transition-all duration-200",
+                  isSelected
+                    ? "border-foreground/20 bg-accent"
+                    : "border-border/50 hover:border-foreground/15 hover:bg-accent/50"
+                )}
+              >
+                <span className="text-[32px] block mb-3">{mode.emoji}</span>
+                <p className="text-[16px] font-semibold">{mode.name}</p>
+                <p className="text-[14px] text-muted-foreground mt-1">{mode.desc}</p>
+                {isSelected && (
+                  <div className="absolute top-4 right-4 h-6 w-6 rounded-full bg-foreground flex items-center justify-center">
+                    <span className="text-background text-[12px]">&#10003;</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Sliders */}
+      {/* Sliders — macOS grouped list style */}
       {profile && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Personality Sliders
-              <span className="text-base">🎚️</span>
-            </CardTitle>
-            <CardDescription>
-              {profile.mode === "CUSTOM"
-                ? "Design your unique Aura blend"
-                : "Fine-tune your selected mode"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div>
+          <p className="text-[14px] text-muted-foreground font-medium mb-4">Fine-tune</p>
+          <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl divide-y divide-border/50 overflow-hidden">
             {SLIDERS.map((slider) => {
               const value = Math.round((profile[slider.key] ?? 0.5) * 100);
               return (
-                <div key={slider.key} className="space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground text-xs">{slider.low}</span>
-                    <span className="font-semibold flex items-center gap-1.5">
-                      <span>{slider.emoji}</span>
-                      {slider.label}
-                      <span className="text-xs font-normal text-muted-foreground ml-1">
-                        {value}%
-                      </span>
-                    </span>
-                    <span className="text-muted-foreground text-xs">{slider.high}</span>
+                <div key={slider.key} className="px-6 py-5">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[16px] font-medium">{slider.label}</span>
+                    <span className="text-[14px] text-muted-foreground tabular-nums">{value}%</span>
                   </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 h-1.5 rounded-full bg-border top-[9px]" />
-                    <div
-                      className="absolute h-1.5 rounded-full bg-foreground/60 top-[9px] transition-all duration-200"
-                      style={{ width: `${value}%` }}
-                    />
+                  <div className="flex items-center gap-4">
+                    <span className="text-[13px] text-muted-foreground w-20 text-right">{slider.low}</span>
                     <input
                       type="range"
                       min="0"
                       max="100"
                       value={value}
                       onChange={(e) => updateSlider(slider.key, parseInt(e.target.value) / 100)}
-                      className="relative w-full"
+                      className="flex-1"
                     />
+                    <span className="text-[13px] text-muted-foreground w-20">{slider.high}</span>
                   </div>
                 </div>
               );
             })}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

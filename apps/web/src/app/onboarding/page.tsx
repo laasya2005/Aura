@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
-import { cn } from "@/lib/utils";
+
 
 type Step = "welcome" | "usecase" | "aura" | "schedule" | "done";
 const STEPS: Step[] = ["welcome", "usecase", "aura", "schedule", "done"];
@@ -17,16 +17,16 @@ const STEP_INFO: Record<Step, { title: string; subtitle: string }> = {
     title: "Welcome to Aura",
     subtitle: "Let's personalize your experience. This takes about 2 minutes.",
   },
-  usecase: { title: "What's your focus?", subtitle: "Pick your areas and set your first goal." },
+  usecase: { title: "What's your focus?", subtitle: "Pick the areas you want to work on." },
   aura: {
     title: "Choose your coach style",
-    subtitle: "This sets the tone for how Aura talks to you. You can change it anytime.",
+    subtitle: "Pick a personality and adjust how intense your AI coach should be.",
   },
   schedule: {
     title: "When should your\ncoach check in?",
     subtitle: "Set a time and reminder type for each habit.",
   },
-  done: { title: "You're all set!", subtitle: "Aura is ready to help you crush your goals." },
+  done: { title: "You're all set!", subtitle: "Aura is ready to keep you on track." },
 };
 
 const CATEGORIES = [
@@ -90,15 +90,13 @@ interface ScheduleCard {
 interface OnboardingData {
   firstName: string;
   useCases: string[];
-  goalTitle: string;
-  goalCategory: string;
   auraMode: string;
   scheduleCards: ScheduleCard[];
 }
 
 const STORAGE_KEY = "aura_onboarding";
 
-function loadSaved(): Partial<OnboardingData> {
+function loadSaved(): Partial<OnboardingData> & { step?: Step } {
   if (typeof window === "undefined") return {};
   try {
     return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "{}");
@@ -107,9 +105,9 @@ function loadSaved(): Partial<OnboardingData> {
   }
 }
 
-function save(data: Partial<OnboardingData>) {
+function save(data: Partial<OnboardingData>, step: Step) {
   if (typeof window !== "undefined") {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, step }));
   }
 }
 
@@ -133,17 +131,23 @@ function reminderToChannels(reminder: ReminderType): string[] {
 export default function OnboardingPage() {
   const router = useRouter();
   const { refreshUser } = useAuth();
-  const [step, setStep] = useState<Step>("welcome");
-  const [data, setData] = useState<Partial<OnboardingData>>(() => ({
-    scheduleCards: [{ label: "", time: "09:00", reminder: "TEXT" as ReminderType, motivation: "" }],
-    ...loadSaved(),
-  }));
+  const [step, setStep] = useState<Step>(() => {
+    const saved = loadSaved();
+    return saved.step && STEPS.includes(saved.step) && saved.step !== "done" ? saved.step : "welcome";
+  });
+  const [data, setData] = useState<Partial<OnboardingData>>(() => {
+    const { step: _step, ...rest } = loadSaved();
+    return {
+      scheduleCards: [{ label: "", time: "09:00", reminder: "TEXT" as ReminderType, motivation: "" }],
+      ...rest,
+    };
+  });
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    save(data);
-  }, [data]);
+    save(data, step);
+  }, [data, step]);
 
   const stepIdx = STEPS.indexOf(step);
   const visibleIdx = (VISIBLE_STEPS as Step[]).indexOf(step);
@@ -184,17 +188,6 @@ export default function OnboardingPage() {
         });
       }
 
-      if (data.goalTitle && data.goalCategory) {
-        await apiFetch("/goals", {
-          method: "POST",
-          body: JSON.stringify({
-            title: data.goalTitle,
-            category: data.goalCategory,
-            description: data.scheduleCards?.[0]?.motivation || undefined,
-          }),
-        });
-      }
-
       if (data.auraMode) {
         await apiFetch("/aura/profile", {
           method: "PATCH",
@@ -217,6 +210,7 @@ export default function OnboardingPage() {
                   type: "MORNING_TEXT",
                   channel: "WHATSAPP",
                   cronExpr,
+                  metadata: card.label.trim() ? { label: card.label.trim() } : undefined,
                 }),
               })
             );
@@ -231,6 +225,7 @@ export default function OnboardingPage() {
                   type: "VOICE_CALL",
                   channel: "VOICE",
                   cronExpr,
+                  metadata: card.label.trim() ? { label: card.label.trim() } : undefined,
                 }),
               })
             );
@@ -358,7 +353,7 @@ export default function OnboardingPage() {
                       const updated = selected
                         ? current.filter((v) => v !== cat.value)
                         : [...current, cat.value];
-                      update({ useCases: updated, goalCategory: updated[0] ?? "" });
+                      update({ useCases: updated });
                     }}
                     className={cn(
                       "relative flex items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5",
@@ -381,40 +376,11 @@ export default function OnboardingPage() {
                 );
               })}
             </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                Describe your first goal
-              </label>
-              <Input
-                placeholder={
-                  data.goalCategory === "FITNESS"
-                    ? "e.g., Run 3 times a week"
-                    : data.goalCategory === "MINDFULNESS"
-                      ? "e.g., Meditate 10 min daily"
-                      : data.goalCategory === "PRODUCTIVITY"
-                        ? "e.g., 2 hours of deep work daily"
-                        : data.goalCategory === "LEARNING"
-                          ? "e.g., Read 20 pages a day"
-                          : data.goalCategory === "HEALTH"
-                            ? "e.g., Drink 8 glasses of water"
-                            : data.goalCategory === "FINANCE"
-                              ? "e.g., Save $500 this month"
-                              : data.goalCategory === "SOCIAL"
-                                ? "e.g., Reach out to 1 friend daily"
-                                : data.goalCategory === "CREATIVE"
-                                  ? "e.g., Write 500 words daily"
-                                  : "e.g., Build a daily habit"
-                }
-                value={data.goalTitle ?? ""}
-                onChange={(e) => update({ goalTitle: e.target.value })}
-                className="h-12"
-              />
-            </div>
             <Button
               variant="glow"
               className="w-full h-12 text-base"
               onClick={next}
-              disabled={!data.useCases?.length || !data.goalTitle?.trim()}
+              disabled={!data.useCases?.length}
             >
               Continue
             </Button>
@@ -449,6 +415,7 @@ export default function OnboardingPage() {
                 </button>
               ))}
             </div>
+
             <Button
               variant="glow"
               className="w-full h-12 text-base"
@@ -609,10 +576,6 @@ export default function OnboardingPage() {
             <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 text-left space-y-3">
               <p className="text-sm font-medium text-muted-foreground">Your setup summary</p>
               <div className="space-y-2.5 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Goal</span>
-                  <span className="font-medium">{data.goalTitle}</span>
-                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Coach style</span>
                   <span className="font-medium">

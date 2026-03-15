@@ -21,20 +21,20 @@
   }
 
   .dark {
-    --background: #09090B;
-    --foreground: #ECECEE;
-    --primary: #ECECEE;
-    --primary-foreground: #09090B;
-    --accent: #18181B;
-    --accent-foreground: #ECECEE;
+    --background: #0A0A0C;
+    --foreground: #F0F0F2;
+    --primary: #F0F0F2;
+    --primary-foreground: #0A0A0C;
+    --accent: #1A1A1E;
+    --accent-foreground: #F0F0F2;
     --destructive: #E5484D;
     --destructive-foreground: #FFFFFF;
-    --muted: #18181B;
-    --muted-foreground: #71717A;
-    --card: #111113;
-    --card-foreground: #ECECEE;
-    --border: #1E1E22;
-    --ring: #ECECEE;
+    --muted: #1A1A1E;
+    --muted-foreground: #7C7C85;
+    --card: #121214;
+    --card-foreground: #F0F0F2;
+    --border: #232328;
+    --ring: #F0F0F2;
   }
 
   * {
@@ -49,6 +49,7 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -192,11 +193,11 @@
   background: var(--foreground);
 }
 
-/* Custom range slider */
+/* Custom range slider — macOS style */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  height: 6px;
+  height: 5px;
   border-radius: 999px;
   background: var(--border);
   outline: none;
@@ -204,26 +205,30 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--foreground);
+  background: #FFFFFF;
   cursor: pointer;
-  border: 2px solid var(--background);
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+  transform: scale(1.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.02);
 }
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--foreground);
+  background: #FFFFFF;
   cursor: pointer;
-  border: 2px solid var(--background);
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
 }
 
 /* ==========================================

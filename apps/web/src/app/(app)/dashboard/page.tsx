@@ -7,15 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
 import { formatEnum } from "@/lib/utils";
-import { ArrowUpRight, Flame, Target, MessageCircle, Crown } from "lucide-react";
-
-interface Goal {
-  id: string;
-  title: string;
-  category: string;
-  currentStreak: number;
-  status: string;
-}
+import { ArrowUpRight, ScrollText } from "lucide-react";
 
 interface ConversationPreview {
   id: string;
@@ -24,154 +16,213 @@ interface ConversationPreview {
   lastMessage?: { content: string; role: string; createdAt: string };
 }
 
+interface SchedulePreview {
+  id: string;
+  type: string;
+  channel: string;
+  cronExpr: string;
+  enabled: boolean;
+  metadata?: { label?: string } | null;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [goals, setGoals] = useState<Goal[]>([]);
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
+  const [engagementStreak, setEngagementStreak] = useState(0);
+  const [schedules, setSchedules] = useState<SchedulePreview[]>([]);
+  const [engagedToday, setEngagedToday] = useState(false);
 
   useEffect(() => {
-    apiFetch<Goal[]>("/goals?status=ACTIVE").then((res) => {
-      if (res.success && res.data) setGoals(res.data);
-    });
-    apiFetch<ConversationPreview[]>("/conversations?limit=3").then((res) => {
+    apiFetch<ConversationPreview[]>("/conversations?limit=5").then((res) => {
       if (res.success && res.data) setConversations(res.data);
+    });
+    apiFetch<{ currentStreak: number; engagedToday: boolean }>("/analytics/summary").then((res) => {
+      if (res.success && res.data) {
+        setEngagementStreak(res.data.currentStreak);
+        setEngagedToday(res.data.engagedToday);
+      }
+    });
+    apiFetch<SchedulePreview[]>("/schedules").then((res) => {
+      if (res.success && res.data) setSchedules(res.data);
     });
   }, []);
 
-  const totalStreak = goals.reduce((sum, g) => sum + g.currentStreak, 0);
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning,";
+    if (h < 17) return "Hey,";
+    return "Good evening,";
+  })();
 
-  const stats = [
-    { label: "Active goals", value: goals.length, icon: Target },
-    { label: "Streak days", value: totalStreak, icon: Flame },
-    { label: "Conversations", value: conversations.length, icon: MessageCircle },
-    { label: "Plan", value: formatEnum(user?.plan ?? "FREE"), icon: Crown },
-  ];
+  const activeSchedules = schedules.filter((s) => s.enabled);
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold">
-          Welcome back{user?.firstName ? `, ${user.firstName}` : ""}{" "}
-          <span className="inline-block animate-bounce-subtle">👋</span>
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Here&apos;s an overview of your progress.
-        </p>
-      </div>
-
-      {/* Metric cards — bento style */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-4 transition-all duration-300 hover:shadow-lg hover:border-foreground/10 hover:-translate-y-0.5"
-          >
-            <stat.icon className="h-5 w-5 text-muted-foreground mb-2" />
-            <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+    <div className="space-y-8">
+      {/* Hero greeting with streak */}
+      <div className="rounded-[20px] border border-border/50 bg-card/80 backdrop-blur-xl p-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[34px] font-bold tracking-tight">
+              {greeting} {user?.firstName ?? "there"}
+            </h1>
           </div>
-        ))}
+          <Link href="/analytics">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+              Analytics <ArrowUpRight className="h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mt-6 flex items-center gap-10">
+          {/* Streak */}
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-[16px] bg-accent flex items-center justify-center">
+              <span className="text-[28px]">🔥</span>
+            </div>
+            <div>
+              <p className="text-[32px] font-bold tracking-tight leading-none">
+                {engagementStreak}
+              </p>
+              <p className="text-[14px] text-muted-foreground mt-0.5">day streak</p>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="h-12 w-px bg-border" />
+
+          {/* Active schedules */}
+          <div>
+            <p className="text-[32px] font-bold tracking-tight leading-none">
+              {activeSchedules.length}
+            </p>
+            <p className="text-[14px] text-muted-foreground mt-0.5">active schedule{activeSchedules.length !== 1 ? "s" : ""}</p>
+          </div>
+
+          {/* Divider */}
+          <div className="h-12 w-px bg-border" />
+
+          {/* Plan */}
+          <div>
+            <p className="text-[32px] font-bold tracking-tight leading-none">
+              {formatEnum(user?.plan ?? "FREE")}
+            </p>
+            <p className="text-[14px] text-muted-foreground mt-0.5">plan</p>
+          </div>
+
+          {/* Status dot */}
+          {engagedToday && (
+            <>
+              <div className="h-12 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[14px] text-emerald-500 font-medium">Active today</span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Content grid */}
+      {/* Two-column: Conversations + Schedules */}
       <div className="grid gap-5 lg:grid-cols-2">
-        {/* Active Goals */}
+        {/* Conversations */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-accent flex items-center justify-center">
-                <Target className="h-3.5 w-3.5 text-foreground" />
-              </div>
-              <CardTitle>Active goals</CardTitle>
-            </div>
-            <Link href="/goals">
+            <CardTitle>Recent Conversations</CardTitle>
+            <Link href="/chat">
               <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-                View all <ArrowUpRight className="h-3 w-3" />
+                Activity <ArrowUpRight className="h-3 w-3" />
               </Button>
             </Link>
           </CardHeader>
           <CardContent>
-            {goals.length === 0 ? (
-              <div className="py-6 text-center">
-                <div className="text-4xl mb-3">🎯</div>
-                <p className="text-sm text-muted-foreground">No active goals yet.</p>
-                <Link href="/goals">
-                  <Button size="sm" className="mt-3">
-                    Create a goal
-                  </Button>
-                </Link>
+            {conversations.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-[17px] text-muted-foreground">Nothing here yet.</p>
+                <p className="text-[14px] text-muted-foreground/60 mt-1">Conversations from voice and WhatsApp will appear here.</p>
               </div>
             ) : (
-              <div className="space-y-1">
-                {goals.slice(0, 5).map((goal) => (
-                  <div
-                    key={goal.id}
-                    className="flex items-center justify-between rounded-xl px-3 py-2.5 -mx-3 hover:bg-accent transition-all duration-200 group"
+              <div className="space-y-0.5">
+                {conversations.map((conv) => (
+                  <Link
+                    key={conv.id}
+                    href={`/chat?id=${conv.id}`}
+                    className="flex items-center justify-between rounded-[12px] px-4 py-3 -mx-2 hover:bg-accent transition-all duration-200"
                   >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{goal.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatEnum(goal.category)}</p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-9 w-9 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                        <ScrollText className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0">
+                        {conv.lastMessage ? (
+                          <p className="text-[15px] truncate">{conv.lastMessage.content}</p>
+                        ) : (
+                          <p className="text-[15px] text-muted-foreground">Empty conversation</p>
+                        )}
+                        <p className="text-[13px] text-muted-foreground mt-0.5">
+                          {formatEnum(conv.channel)} &middot;{" "}
+                          {new Date(conv.startedAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">
-                      <Flame className="h-3.5 w-3.5 text-foreground streak-fire" />
-                      <span className="text-xs font-bold tabular-nums">{goal.currentStreak}</span>
-                    </div>
-                  </div>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-3" />
+                  </Link>
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Recent Conversations */}
+        {/* Upcoming schedules */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-accent flex items-center justify-center">
-                <MessageCircle className="h-3.5 w-3.5 text-foreground" />
-              </div>
-              <CardTitle>Recent conversations</CardTitle>
-            </div>
-            <Link href="/chat">
+            <CardTitle>Schedules</CardTitle>
+            <Link href="/schedules">
               <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-                Chat <ArrowUpRight className="h-3 w-3" />
+                Manage <ArrowUpRight className="h-3 w-3" />
               </Button>
             </Link>
           </CardHeader>
           <CardContent>
-            {conversations.length === 0 ? (
-              <div className="py-6 text-center">
-                <div className="text-4xl mb-3">💬</div>
-                <p className="text-sm text-muted-foreground">No conversations yet.</p>
-                <Link href="/chat">
-                  <Button size="sm" className="mt-3">
-                    Start chatting
+            {activeSchedules.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-[17px] text-muted-foreground">No schedules yet.</p>
+                <p className="text-[14px] text-muted-foreground/60 mt-1">Set up when Aura should check in with you.</p>
+                <Link href="/schedules">
+                  <Button size="sm" className="mt-5">
+                    Create schedule
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-1">
-                {conversations.map((conv) => (
-                  <Link
-                    key={conv.id}
-                    href={`/chat?id=${conv.id}`}
-                    className="flex items-center justify-between rounded-xl px-3 py-2.5 -mx-3 hover:bg-accent transition-all duration-200 group"
-                  >
-                    <div className="min-w-0">
-                      {conv.lastMessage ? (
-                        <p className="text-sm truncate">{conv.lastMessage.content}</p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Empty conversation</p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {formatEnum(conv.channel)} &middot;{" "}
-                        {new Date(conv.startedAt).toLocaleDateString()}
-                      </p>
+              <div className="space-y-0.5">
+                {activeSchedules.slice(0, 5).map((schedule) => {
+                  const channelEmoji = schedule.channel === "VOICE" ? "📞" : "💬";
+                  const label =
+                    schedule.metadata?.label ?? formatEnum(schedule.type);
+
+                  return (
+                    <div
+                      key={schedule.id}
+                      className="flex items-center justify-between rounded-[12px] px-4 py-3 -mx-2 hover:bg-accent transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-9 w-9 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                          <span className="text-[18px]">{channelEmoji}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[15px] font-medium truncate">{label}</p>
+                          <p className="text-[13px] text-muted-foreground mt-0.5">
+                            {formatEnum(schedule.channel)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">
+                        <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                        <span className="text-[13px] text-muted-foreground">Active</span>
+                      </div>
                     </div>
-                    <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0 ml-3" />
-                  </Link>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

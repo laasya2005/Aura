@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { AuraLogo } from "@/components/ui/aura-logo";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms and Conditions - Aura",
-  description: "Terms and Conditions for Aura - Your AI Companion",
+  description: "Terms and Conditions for Aura - AI Companion",
 };
 
 export default function TermsPage() {
@@ -14,8 +14,8 @@ export default function TermsPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-border/30 bg-background/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-background" />
+            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center text-background">
+              <AuraLogo />
             </div>
             <span className="text-xl font-bold">Aura</span>
           </Link>
@@ -42,8 +42,8 @@ export default function TermsPage() {
             <p>
               Aura is an AI-powered accountability companion that helps users achieve their goals
               through personalized check-in messages, motivational content, and progress tracking.
-              The Service is delivered through our web application and, with your consent, via SMS
-              text messages and automated voice calls.
+              The Service is delivered through our web application and, with your consent, via WhatsApp
+              messages and automated voice calls.
             </p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
@@ -80,41 +80,41 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3">5. SMS and Voice Communications</h2>
+            <h2 className="text-lg font-semibold mb-3">5. WhatsApp and Voice Communications</h2>
             <p>
-              By opting in to SMS or voice communications through the Service, you consent to
-              receive recurring automated text messages and/or voice calls from Aura at the phone
+              By opting in to WhatsApp or voice communications through the Service, you consent to
+              receive recurring automated WhatsApp messages and/or voice calls from Aura at the phone
               number you provided. These messages will relate to your goals, schedules, streak
               updates, and motivational check-ins.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.1 Opting In</h3>
             <p>
-              You opt in to SMS/voice communications by enabling them during onboarding, creating
-              schedules with SMS or voice channels, or enabling SMS/voice in your notification
-              settings. You may also opt in by texting START or SUBSCRIBE to our messaging number.
+              You opt in to WhatsApp/voice communications by enabling them during onboarding, creating
+              schedules with WhatsApp or voice channels, or enabling them in your notification
+              settings.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.2 Opting Out</h3>
-            <p>You can opt out of SMS messages at any time by:</p>
+            <p>You can opt out of WhatsApp messages at any time by:</p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
-                Replying <span className="font-bold">STOP</span> to any SMS message from Aura.
+                Sending <span className="font-bold">STOP</span> to Aura on WhatsApp.
               </li>
-              <li>Disabling SMS notifications in your account Settings.</li>
-              <li>Deleting your schedules that use SMS.</li>
+              <li>Disabling WhatsApp notifications in your account Settings.</li>
+              <li>Deleting your schedules that use WhatsApp.</li>
               <li>Deleting your account.</li>
             </ul>
             <p className="mt-2">
               After opting out, you will receive a final confirmation message and will no longer
-              receive SMS messages from Aura unless you opt back in.
+              receive WhatsApp messages from Aura unless you opt back in.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.3 Getting Help</h3>
-            <p>For help with SMS messaging, you can:</p>
+            <p>For help with WhatsApp messaging, you can:</p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
-                Reply <span className="font-bold">HELP</span> to any SMS message from Aura.
+                Send <span className="font-bold">HELP</span> to Aura on WhatsApp.
               </li>
               <li>Contact us at support@aura-app.com.</li>
             </ul>
@@ -133,7 +133,7 @@ export default function TermsPage() {
               </li>
               <li>
                 <span className="font-medium">Pro plan ($9.99/mo):</span> Expanded goals, schedules,
-                SMS + voice, and custom personality tuning.
+                WhatsApp + voice, and custom personality tuning.
               </li>
               <li>
                 <span className="font-medium">Elite plan ($24.99/mo):</span> Full access to all

@@ -3,10 +3,10 @@ import type { PrismaClient } from "@aura/db";
 // Voice IDs available on ElevenLabs free tier
 const MODE_VOICE_MAP: Record<string, string> = {
   GLOW: "cgSgspJ2msm6clMCkdW9", // Jessica - Playful, Bright, Warm
-  FLAME: "IKne3meq5aSn9XLyUdCD", // Charlie - Deep, Confident, Energetic
-  MIRROR: "pNInz6obpgDQGcFmaJgB", // Adam - Dominant, Firm
-  TIDE: "EXAVITQu4vr4xnSDxMaL", // Sarah - Mature, Reassuring
-  VOLT: "TX3LPaxmHKxFdv7VOQHJ", // Liam - Energetic, Social Media Creator
+  FLAME: "AZnzlk1XvdvUeBnXmlld", // Domi - Strong, Assertive, Confident
+  MIRROR: "EXAVITQu4vr4xnSDxMaL", // Sarah - Mature, Reassuring
+  TIDE: "jBpfuIE2acCO8z3wKNLl", // Gigi - Calm, Gentle, Serene
+  VOLT: "MF3mGyEYCl7XYWbV9V6O", // Elli - Energetic, Upbeat
 };
 const DEFAULT_VOICE_ID = "cgSgspJ2msm6clMCkdW9"; // Jessica
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
-import { Sparkles } from "lucide-react";
+import { AuraLogo } from "@/components/ui/aura-logo";
 
 type Step = "phone" | "otp";
 
@@ -75,8 +75,8 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-[380px]">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-foreground flex items-center justify-center shadow-xl">
-            <Sparkles className="h-7 w-7 text-background" />
+          <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-foreground flex items-center justify-center text-background shadow-xl">
+            <AuraLogo className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-bold">Aura</h1>
           <p className="text-sm text-muted-foreground mt-2">

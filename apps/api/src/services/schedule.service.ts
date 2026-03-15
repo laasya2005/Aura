@@ -11,7 +11,6 @@ import { addScheduleJob, removeScheduleJob } from "@aura/queue";
 const CHANNEL_CONSENT_MAP: Record<string, ConsentType> = {
   VOICE: "VOICE",
   WHATSAPP: "WHATSAPP",
-  SMS: "SMS",
 };
 
 const PLAN_SCHEDULE_LIMITS: Record<string, number> = {

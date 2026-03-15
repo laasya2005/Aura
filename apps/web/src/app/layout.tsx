@@ -4,8 +4,9 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 
 export const metadata: Metadata = {
-  title: "Aura - Your AI Companion",
-  description: "Personalized AI companion that texts, calls, and messages you based on your goals.",
+  title: "Aura - AI Companion",
+  description: "Personalized AI companion that texts, calls, and messages to keep you on track.",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

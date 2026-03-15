@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev worker tunnel",
+    "dev": "pnpm db:generate && turbo dev worker tunnel",
     "lint": "turbo lint",
     "lint:fix": "turbo lint -- --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -18,7 +18,7 @@
     "db:studio": "pnpm --filter @aura/db studio",
     "worker": "pnpm --filter @aura/api worker",
     "voice-agent": "pnpm --filter @aura/voice-agent dev",
-    "dev:full": "turbo dev worker tunnel voice-agent"
+    "dev:full": "pnpm db:generate && turbo dev worker tunnel voice-agent"
   },
   "devDependencies": {
     "dotenv-cli": "^7.3.0",

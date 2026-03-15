@@ -21,6 +21,7 @@ import webhookRoutes from "./routes/webhooks.js";
 import adminRoutes from "./routes/admin.js";
 import billingRoutes from "./routes/billing.js";
 import groupRoutes from "./routes/groups.js";
+import analyticsRoutes from "./routes/analytics.js";
 
 // Middleware
 import { requestIdMiddleware } from "./middleware/request-id.js";
@@ -129,6 +130,7 @@ export function buildServer() {
   server.register(adminRoutes);
   server.register(billingRoutes);
   server.register(groupRoutes);
+  server.register(analyticsRoutes);
 
   // --- Error handler ---
   server.setErrorHandler((error, _request, reply) => {

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { AuraLogo } from "@/components/ui/aura-logo";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy - Aura",
-  description: "Privacy Policy for Aura - Your AI Companion",
+  description: "Privacy Policy for Aura - AI Companion",
 };
 
 export default function PrivacyPolicyPage() {
@@ -14,8 +14,8 @@ export default function PrivacyPolicyPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-border/30 bg-background/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-background" />
+            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center text-background">
+              <AuraLogo />
             </div>
             <span className="text-xl font-bold">Aura</span>
           </Link>
@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
             <p>
               Aura (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting
               your privacy. This Privacy Policy explains how we collect, use, disclose, and
-              safeguard your information when you use our web application and related SMS/voice
+              safeguard your information when you use our web application and related WhatsApp/voice
               services (collectively, the &quot;Service&quot;).
             </p>
             <p className="mt-2">
@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <span className="font-medium">Schedule preferences:</span> Check-in times, days, and
-                communication channel preferences (SMS, voice, web).
+                communication channel preferences (WhatsApp, voice).
               </li>
               <li>
                 <span className="font-medium">Aura personality settings:</span> Your selected
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <span className="font-medium">Consent records:</span> Your opt-in/opt-out
-                preferences for SMS, voice calls, and marketing communications.
+                preferences for WhatsApp, voice calls, and marketing communications.
               </li>
             </ul>
 
@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>Provide, maintain, and improve the Service.</li>
               <li>
-                Send you personalized check-in messages, reminders, and motivational content via SMS
+                Send you personalized check-in messages, reminders, and motivational content via WhatsApp
                 and voice calls based on your configured schedules.
               </li>
               <li>
@@ -121,7 +121,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
                 <span className="font-medium">Service providers:</span> We use third-party providers
-                to operate the Service, including Twilio (SMS and voice delivery), Stripe (payment
+                to operate the Service, including Twilio (WhatsApp and voice delivery), Stripe (payment
                 processing), and AI providers (message generation). These providers access your data
                 only as necessary to perform their services and are bound by contractual obligations
                 to protect your information.
@@ -178,8 +178,8 @@ export default function PrivacyPolicyPage() {
                 account and all associated data from the Settings page.
               </li>
               <li>
-                <span className="font-medium">Opt out of SMS:</span> Reply STOP to any SMS message
-                or disable SMS in your notification settings.
+                <span className="font-medium">Opt out of WhatsApp:</span> Send STOP to Aura on WhatsApp
+                or disable WhatsApp in your notification settings.
               </li>
               <li>
                 <span className="font-medium">Opt out of voice calls:</span> Disable voice calls in
@@ -193,13 +193,13 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3">8. SMS/Voice Messaging</h2>
+            <h2 className="text-lg font-semibold mb-3">8. WhatsApp/Voice Messaging</h2>
             <p>
-              When you opt in to SMS or voice communications, you consent to receive recurring
+              When you opt in to WhatsApp or voice communications, you consent to receive recurring
               automated messages from Aura related to your goals and schedules. Message frequency
-              varies based on your configured schedules. Message and data rates may apply. You can
-              opt out at any time by replying STOP to any message, disabling SMS/voice in your
-              notification settings, or contacting us at the address below.
+              varies based on your configured schedules. Data rates may apply. You can
+              opt out at any time by sending STOP on WhatsApp, disabling notifications in your
+              settings, or contacting us at the address below.
             </p>
             <p className="mt-2">
               Your phone number and messaging consent information will not be shared with third

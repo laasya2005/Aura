@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog } from "@/components/ui/dialog";
 import { apiFetch } from "@/lib/api";
 import { cn, formatEnum } from "@/lib/utils";
-import { Plus, Trash2, Clock, ToggleLeft, ToggleRight, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 
 interface Schedule {
   id: string;
@@ -272,10 +272,10 @@ export default function SchedulesPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold flex items-center gap-2">
-            Schedules <span className="text-xl">📅</span>
+          <h1 className="text-[28px] font-bold tracking-tight">
+            Schedules
           </h1>
-          <p className="text-[13px] text-muted-foreground mt-0.5">Manage when Aura reaches out.</p>
+          <p className="text-base text-muted-foreground mt-1">When and how Aura checks in with you.</p>
         </div>
         <Button onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" /> New Schedule
@@ -290,17 +290,17 @@ export default function SchedulesPage() {
 
       {/* Quick Presets */}
       <div>
-        <p className="text-xs text-muted-foreground mb-2.5 font-medium uppercase tracking-wider">
+        <p className="text-[14px] text-muted-foreground font-medium mb-3">
           Quick presets
         </p>
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar">
           {PRESETS.map((p) => (
             <button
               key={p.label}
               onClick={() => openPreset(p)}
-              className="flex-shrink-0 flex items-center gap-1.5 rounded-xl border border-border/50 px-3.5 py-2 text-sm transition-all duration-200 hover:border-foreground/20 hover:bg-accent hover:-translate-y-0.5 hover:shadow-md whitespace-nowrap pill-hover"
+              className="flex-shrink-0 flex items-center gap-2 rounded-[12px] border border-border/50 px-4 py-2.5 text-[15px] transition-all duration-200 hover:border-foreground/20 hover:bg-accent whitespace-nowrap"
             >
-              <span className="text-base">{p.emoji}</span>
+              <span className="text-lg">{p.emoji}</span>
               <span>{p.label}</span>
             </button>
           ))}
@@ -317,7 +317,7 @@ export default function SchedulesPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">Schedule name</p>
+              <p className="text-[14px] text-muted-foreground mb-2">Schedule name</p>
               <Input
                 placeholder="e.g., Morning run, Hydration reminder, Study session..."
                 value={newLabel}
@@ -330,7 +330,7 @@ export default function SchedulesPage() {
             </div>
 
             <div>
-              <p className="text-xs text-muted-foreground mb-2">Quick suggestions</p>
+              <p className="text-[14px] text-muted-foreground mb-2">Quick suggestions</p>
               <div className="flex flex-wrap gap-2">
                 {TYPE_SUGGESTIONS.map((t) => (
                   <button
@@ -340,7 +340,7 @@ export default function SchedulesPage() {
                       setNewType(t.value);
                     }}
                     className={cn(
-                      "rounded-xl px-3 py-1.5 text-xs border transition-all duration-200 pill-hover",
+                      "rounded-[10px] px-4 py-2 text-[14px] border transition-all duration-200",
                       newLabel === t.label
                         ? "bg-foreground text-background border-transparent shadow-md"
                         : "border-border/60 hover:border-foreground/20"
@@ -354,11 +354,11 @@ export default function SchedulesPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1.5">Time</p>
+                <p className="text-[14px] text-muted-foreground mb-2">Time</p>
                 <select
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
-                  className="flex h-9 w-full rounded-xl border border-border bg-transparent px-3 text-[13px] transition-all focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-foreground/20 appearance-none"
+                  className="flex h-12 w-full rounded-[12px] border border-border bg-background px-4 text-[15px] transition-all focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-foreground/20 appearance-none"
                 >
                   {TIME_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -368,11 +368,11 @@ export default function SchedulesPage() {
                 </select>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1.5">Days</p>
+                <p className="text-[14px] text-muted-foreground mb-2">Days</p>
                 <select
                   value={newDays}
                   onChange={(e) => setNewDays(e.target.value)}
-                  className="flex h-9 w-full rounded-xl border border-border bg-transparent px-3 text-[13px] transition-all focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-foreground/20 appearance-none"
+                  className="flex h-12 w-full rounded-[12px] border border-border bg-background px-4 text-[15px] transition-all focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-foreground/20 appearance-none"
                 >
                   {DAYS_OPTIONS.map((d) => (
                     <option key={d.value} value={d.value}>
@@ -384,7 +384,7 @@ export default function SchedulesPage() {
             </div>
 
             <div>
-              <p className="text-xs text-muted-foreground mb-2">Channel</p>
+              <p className="text-[14px] text-muted-foreground mb-2">Channel</p>
               <div className="flex gap-2">
                 {CHANNEL_OPTIONS.map((ch) => (
                   <button
@@ -424,75 +424,65 @@ export default function SchedulesPage() {
         </Card>
       )}
 
-      {/* Schedule list */}
+      {/* Schedule list — grouped like macOS settings */}
       {schedules.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <div className="text-4xl mb-3">⏰</div>
-            <p className="text-sm text-muted-foreground">
-              No schedules yet. Create one or pick a preset above!
-            </p>
-          </CardContent>
-        </Card>
+        <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl py-12 text-center">
+          <p className="text-[17px] text-muted-foreground">No schedules yet</p>
+          <p className="text-[14px] text-muted-foreground/60 mt-1">
+            Pick a preset above or create your own.
+          </p>
+        </div>
       ) : (
-        <div className="space-y-2">
+        <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl divide-y divide-border/50 overflow-hidden">
           {schedules.map((s) => (
-            <Card
+            <div
               key={s.id}
-              className={cn("transition-all duration-200", !s.enabled && "opacity-60")}
+              className={cn(
+                "flex items-center justify-between px-6 py-4 transition-all duration-200",
+                !s.enabled && "opacity-50"
+              )}
             >
-              <CardContent className="flex items-center justify-between pt-4">
-                <div className="flex items-center gap-3">
-                  <div
+              <div className="flex items-center gap-4 min-w-0">
+                <span className="text-[24px] flex-shrink-0">{CHANNEL_EMOJI[s.channel] ?? "🔔"}</span>
+                <div className="min-w-0">
+                  <p className="text-[16px] font-medium truncate">
+                    {getLabel(s)}
+                  </p>
+                  <p className="text-[14px] text-muted-foreground">
+                    {cronToHuman(s.cronExpr)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => toggle(s.id, s.enabled)}
+                  title="Toggle"
+                  className={cn(
+                    "relative h-[30px] w-[50px] rounded-full transition-all duration-200",
+                    s.enabled ? "bg-emerald-500" : "bg-border"
+                  )}
+                >
+                  <span
                     className={cn(
-                      "h-9 w-9 rounded-xl flex items-center justify-center transition-all",
-                      s.enabled ? "bg-accent shadow-sm" : "bg-muted"
+                      "absolute top-[3px] left-[3px] h-[24px] w-[24px] rounded-full bg-white shadow-sm transition-transform duration-200",
+                      s.enabled ? "translate-x-[20px]" : ""
                     )}
-                  >
-                    <Clock
-                      className={cn(
-                        "h-4 w-4",
-                        s.enabled ? "text-foreground" : "text-muted-foreground"
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <p className="font-semibold flex items-center gap-1.5">
-                      {getLabel(s)}
-                      <span className="text-sm">{CHANNEL_EMOJI[s.channel] ?? ""}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {cronToHuman(s.cronExpr)} &middot; {formatEnum(s.channel)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => toggle(s.id, s.enabled)}
-                    title="Toggle"
-                    className="transition-transform hover:scale-110"
-                  >
-                    {s.enabled ? (
-                      <ToggleRight className="h-7 w-7 text-foreground" />
-                    ) : (
-                      <ToggleLeft className="h-7 w-7 text-muted-foreground" />
-                    )}
-                  </button>
-                  <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Edit">
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setDeleteTarget(s)}
-                    title="Delete"
-                    className="hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  />
+                </button>
+                <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Edit">
+                  <Pencil className="h-4 w-4 text-muted-foreground" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setDeleteTarget(s)}
+                  title="Delete"
+                  className="hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       )}

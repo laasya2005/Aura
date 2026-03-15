@@ -5,14 +5,14 @@ export interface TtsResult {
 
 // Voice IDs mapped to Aura personality modes
 const MODE_VOICE_MAP: Record<string, string> = {
-  GLOW: "21m00Tcm4TlvDq8ikWAM", // Rachel - warm, friendly
-  FLAME: "VR6AewLTigWG4xSOukaG", // Arnold - bold, energetic
-  MIRROR: "pNInz6obpgDQGcFmaJgB", // Adam - thoughtful, measured
-  TIDE: "EXAVITQu4vr4xnSDxMaL", // Bella - calm, serene
-  VOLT: "MF3mGyEYCl7XYWbV9V6O", // Elli - energetic, upbeat
+  GLOW: "cgSgspJ2msm6clMCkdW9", // Jessica - Playful, Bright, Warm
+  FLAME: "AZnzlk1XvdvUeBnXmlld", // Domi - Strong, Assertive, Confident
+  MIRROR: "EXAVITQu4vr4xnSDxMaL", // Sarah - Mature, Reassuring
+  TIDE: "jBpfuIE2acCO8z3wKNLl", // Gigi - Calm, Gentle, Serene
+  VOLT: "MF3mGyEYCl7XYWbV9V6O", // Elli - Energetic, Upbeat
 };
 
-const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
+const DEFAULT_VOICE_ID = "cgSgspJ2msm6clMCkdW9"; // Jessica
 
 function getApiKey(): string {
   const key = process.env.ELEVENLABS_API_KEY;

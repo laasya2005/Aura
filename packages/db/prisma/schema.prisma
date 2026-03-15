@@ -52,10 +52,8 @@ enum MessageRole {
 }
 
 enum Channel {
-  SMS
   WHATSAPP
   VOICE
-  WEB
 }
 
 enum ScheduleType {
@@ -88,11 +86,21 @@ enum SubscriptionStatus {
 }
 
 enum ConsentType {
-  SMS
   WHATSAPP
   VOICE
   MARKETING
   DATA_PROCESSING
+}
+
+enum EngagementType {
+  MESSAGE_RESPONSE
+  VOICE_CALL_COMPLETED
+}
+
+enum ScheduleExecutionStatus {
+  SENT
+  COMPLETED
+  MISSED
 }
 
 enum GroupRole {
@@ -125,7 +133,9 @@ model User {
   memories      MemorySummary[]
   subscription  Subscription?
   consents      ConsentRecord[]
-  groupMembers  GroupMember[]
+  groupMembers       GroupMember[]
+  engagements        Engagement[]
+  scheduleExecutions ScheduleExecution[]
 
   @@index([status])
   @@map("users")
@@ -164,6 +174,7 @@ model Goal {
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  engagements Engagement[]
 
   @@index([userId, status])
   @@index([userId, category])
@@ -217,7 +228,8 @@ model Schedule {
   createdAt  DateTime     @default(now()) @map("created_at")
   updatedAt  DateTime     @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions ScheduleExecution[]
 
   @@index([userId, enabled])
   @@index([nextRunAt, enabled])
@@ -314,4 +326,40 @@ model GroupMember {
   @@unique([groupId, userId])
   @@index([userId])
   @@map("group_members")
+}
+
+model Engagement {
+  id        String         @id @default(cuid())
+  userId    String         @map("user_id")
+  channel   Channel
+  type      EngagementType
+  goalId    String?        @map("goal_id")
+  metadata  Json?
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal Goal? @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([userId, channel])
+  @@index([goalId, createdAt])
+  @@map("engagements")
+}
+
+model ScheduleExecution {
+  id          String                  @id @default(cuid())
+  scheduleId  String                  @map("schedule_id")
+  userId      String                  @map("user_id")
+  channel     Channel
+  status      ScheduleExecutionStatus @default(SENT)
+  firedAt     DateTime                @default(now()) @map("fired_at")
+  completedAt DateTime?               @map("completed_at")
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([scheduleId, firedAt])
+  @@index([userId, firedAt])
+  @@map("schedule_executions")
 }

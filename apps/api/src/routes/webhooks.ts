@@ -2,7 +2,6 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import {
   validateTwilioSignature,
   checkTcpaKeywords,
-  formatForSms,
   sendWhatsApp,
   formatForWhatsApp,
   buildTwimlSay,
@@ -10,11 +9,13 @@ import {
 } from "@aura/comms";
 
 import { ConversationService } from "../services/conversation.service.js";
+import { EngagementService } from "../services/engagement.service.js";
 import { buildAuditLogger } from "../services/audit.service.js";
 
 export default async function webhookRoutes(server: FastifyInstance) {
   const audit = buildAuditLogger(server.prisma);
   const conversationService = new ConversationService(server.prisma, server.redis, audit);
+  const engagementService = new EngagementService(server.prisma, audit);
 
   // Twilio signature validation hook for all twilio webhooks
   async function validateTwilio(request: FastifyRequest, reply: FastifyReply) {
@@ -36,118 +37,6 @@ export default async function webhookRoutes(server: FastifyInstance) {
       return reply.status(403).send({ error: "Invalid Twilio signature" });
     }
   }
-
-  // POST /webhooks/twilio/sms — Inbound SMS from user
-  server.post("/webhooks/twilio/sms", {
-    preHandler: validateTwilio,
-    handler: async (request: FastifyRequest, reply: FastifyReply) => {
-      const body = request.body as {
-        From: string;
-        To: string;
-        Body: string;
-        MessageSid: string;
-      };
-
-      const phone = body.From;
-      const content = body.Body?.trim();
-
-      if (!phone || !content) {
-        return reply.status(400).send({ error: "Missing required fields" });
-      }
-
-      // TCPA keyword handling
-      const tcpaAction = checkTcpaKeywords(content);
-      if (tcpaAction === "stop") {
-        // Revoke SMS consent
-        const user = await server.prisma.user.findUnique({ where: { phone } });
-        if (user) {
-          await server.prisma.consentRecord.create({
-            data: {
-              userId: user.id,
-              type: "SMS",
-              granted: false,
-            },
-          });
-
-          await audit({
-            userId: user.id,
-            action: "consent.sms.revoked_via_stop",
-            resource: "consent",
-          });
-        }
-
-        return reply.type("text/xml").send(
-          `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>You have been unsubscribed from Aura messages. Reply START to re-subscribe.</Message>
-</Response>`
-        );
-      }
-
-      if (tcpaAction === "help") {
-        return reply.type("text/xml").send(
-          `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>Aura - Your AI Companion. Reply STOP to unsubscribe. For support visit aura.app/help or email help@aura.app</Message>
-</Response>`
-        );
-      }
-
-      // Find user by phone number
-      const user = await server.prisma.user.findUnique({ where: { phone } });
-      if (!user) {
-        return reply.type("text/xml").send(
-          `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>Welcome! Download Aura to get started: aura.app</Message>
-</Response>`
-        );
-      }
-
-      // Check SMS consent
-      const consent = await server.prisma.consentRecord.findFirst({
-        where: { userId: user.id, type: "SMS" },
-        orderBy: { grantedAt: "desc" },
-      });
-
-      if (!consent?.granted) {
-        return reply.type("text/xml").send(
-          `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>Please enable SMS in your Aura settings to chat via text.</Message>
-</Response>`
-        );
-      }
-
-      // Process the message through the conversation service
-      try {
-        const result = await conversationService.sendMessage(
-          user.id,
-          user.plan,
-          content,
-          "SMS",
-          request.ip
-        );
-
-        const smsContent = formatForSms(result.response.content);
-
-        return reply.type("text/xml").send(
-          `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>${escapeXml(smsContent)}</Message>
-</Response>`
-        );
-      } catch (error) {
-        server.log.error(error, "Failed to process inbound SMS");
-        return reply.type("text/xml").send(
-          `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>Sorry, I'm having trouble right now. I'll be back soon!</Message>
-</Response>`
-        );
-      }
-    },
-  });
 
   // POST /webhooks/twilio/whatsapp — Inbound WhatsApp message
   server.post("/webhooks/twilio/whatsapp", {
@@ -199,7 +88,7 @@ export default async function webhookRoutes(server: FastifyInstance) {
       if (tcpaAction === "help") {
         await sendWhatsApp(
           phone,
-          "Aura - Your AI Companion. Send STOP to unsubscribe. For support visit aura.app/help or email help@aura.app"
+          "Aura - AI Companion. Send STOP to unsubscribe. For support visit aura.app/help or email help@aura.app"
         );
         return reply.send({ received: true });
       }
@@ -232,6 +121,12 @@ export default async function webhookRoutes(server: FastifyInstance) {
           request.ip
         );
 
+        // Auto-track engagement for streaks + mark schedules completed
+        try {
+          await engagementService.recordEngagement(user.id, "WHATSAPP", "MESSAGE_RESPONSE");
+          await engagementService.completeScheduleExecutions(user.id, "WHATSAPP");
+        } catch (e) { server.log.warn(e, "Failed to record engagement"); }
+
         const waContent = formatForWhatsApp(result.response.content);
         await sendWhatsApp(phone, waContent);
         return reply.send({ received: true });
@@ -261,11 +156,10 @@ export default async function webhookRoutes(server: FastifyInstance) {
 
       // Outbound call: From=Twilio number, To=user's phone
       // Inbound call: From=user's phone, To=Twilio number
-      const userPhone = body.To;
-      const user = await server.prisma.user.findUnique({
-        where: { phone: userPhone },
-        include: { auraProfile: true },
-      });
+      // Try both to handle either direction
+      const user =
+        (await server.prisma.user.findUnique({ where: { phone: body.To }, include: { auraProfile: true } })) ??
+        (await server.prisma.user.findUnique({ where: { phone: body.From }, include: { auraProfile: true } }));
 
       if (!user) {
         return reply.type("text/xml").send(buildTwimlHangup());
@@ -299,6 +193,7 @@ export default async function webhookRoutes(server: FastifyInstance) {
         CallStatus: string;
         CallDuration?: string;
         From: string;
+        To: string;
       };
 
       server.log.info(
@@ -308,9 +203,11 @@ export default async function webhookRoutes(server: FastifyInstance) {
 
       // Track call completion for usage metering
       if (body.CallStatus === "completed" && body.CallDuration) {
-        const user = await server.prisma.user.findUnique({
-          where: { phone: body.From },
-        });
+        // For outbound calls, From is the Twilio number and To is the user's phone.
+        // For inbound calls, From is the user's phone. Try both to find the user.
+        const user =
+          (await server.prisma.user.findUnique({ where: { phone: body.To } })) ??
+          (await server.prisma.user.findUnique({ where: { phone: body.From } }));
 
         if (user) {
           await audit({
@@ -322,6 +219,15 @@ export default async function webhookRoutes(server: FastifyInstance) {
               duration: parseInt(body.CallDuration, 10),
             },
           });
+
+          // Auto-track engagement for streaks + mark schedules completed
+          try {
+            await engagementService.recordEngagement(user.id, "VOICE", "VOICE_CALL_COMPLETED", {
+              callSid: body.CallSid,
+              duration: parseInt(body.CallDuration, 10),
+            });
+            await engagementService.completeScheduleExecutions(user.id, "VOICE");
+          } catch (e) { server.log.warn(e, "Failed to record engagement"); }
         }
       }
 

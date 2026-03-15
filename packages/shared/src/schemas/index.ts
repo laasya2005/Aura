@@ -4,3 +4,4 @@ export * from "./aura.js";
 export * from "./goal.js";
 export * from "./schedule.js";
 export * from "./conversation.js";
+export * from "./analytics.js";

@@ -9,7 +9,7 @@ export const updateUserSchema = z.object({
 });
 
 export const consentSchema = z.object({
-  type: z.enum(["SMS", "VOICE", "MARKETING", "DATA_PROCESSING"]),
+  type: z.enum(["WHATSAPP", "VOICE", "MARKETING", "DATA_PROCESSING"]),
   granted: z.boolean(),
 });
 

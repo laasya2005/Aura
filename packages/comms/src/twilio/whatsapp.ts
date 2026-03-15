@@ -83,7 +83,7 @@ export async function sendWhatsAppTemplate(
 
 /**
  * Try sending a WhatsApp message. If it fails (e.g., outside 24hr window),
- * returns false so the caller can fall back to SMS.
+ * returns false so the caller can handle the failure.
  */
 export async function trySendWhatsApp(
   to: string,
@@ -100,7 +100,7 @@ export async function trySendWhatsApp(
 
 /**
  * Format message for WhatsApp.
- * WhatsApp supports basic formatting (*bold*, _italic_) so we keep more than SMS.
+ * WhatsApp supports basic formatting (*bold*, _italic_) so we preserve them.
  * We strip code blocks and links but preserve bold/italic.
  */
 export function formatForWhatsApp(content: string): string {

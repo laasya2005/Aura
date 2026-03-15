@@ -2,7 +2,7 @@ export type Plan = "FREE" | "PRO" | "ELITE";
 
 export type AuraMode = "GLOW" | "FLAME" | "MIRROR" | "TIDE" | "VOLT" | "CUSTOM";
 
-export type Channel = "SMS" | "WHATSAPP" | "VOICE" | "WEB";
+export type Channel = "WHATSAPP" | "VOICE";
 
 export type GoalCategory =
   | "FITNESS"

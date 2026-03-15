@@ -46,7 +46,7 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex h-9 w-full items-center justify-between rounded-md border border-border bg-transparent px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        className="flex h-12 w-full items-center justify-between rounded-[12px] border border-border bg-background px-4 text-[16px] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       >
         <span className={selected ? "text-foreground" : "text-muted-foreground"}>
           {selected?.label ?? placeholder ?? "Select..."}
@@ -60,7 +60,7 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg shadow-black/5 dark:shadow-black/20 overflow-hidden">
+        <div className="absolute z-50 mt-1 w-full rounded-[12px] border border-border bg-card shadow-lg shadow-black/5 dark:shadow-black/20 overflow-hidden">
           <div className="max-h-56 overflow-y-auto py-0.5">
             {options.map((opt) => (
               <button
@@ -71,7 +71,7 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex w-full items-center justify-between px-3 py-1.5 text-sm transition-colors",
+                  "flex w-full items-center justify-between px-4 py-2.5 text-[15px] transition-colors",
                   opt.value === value
                     ? "bg-accent text-foreground"
                     : "text-foreground hover:bg-accent"
