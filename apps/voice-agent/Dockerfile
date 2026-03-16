@@ -32,7 +32,7 @@ RUN pnpm --filter @aura/voice-agent deploy --prod /prod/voice-agent && \
 
 # Stage 2: Production
 FROM node:20-slim AS runner
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN groupadd --system aura && useradd --system --gid aura aura
 
 WORKDIR /app
@@ -41,4 +41,4 @@ COPY --from=builder /prod/voice-agent ./
 USER aura
 ENV NODE_ENV=production
 
-CMD ["node", "dist/agent.js", "dev"]
+CMD ["node", "dist/agent.js", "start"]
