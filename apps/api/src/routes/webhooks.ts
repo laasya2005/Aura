@@ -25,15 +25,19 @@ export default async function webhookRoutes(server: FastifyInstance) {
 
     const signature = request.headers["x-twilio-signature"] as string;
     if (!signature) {
+      server.log.warn("[webhook] Missing X-Twilio-Signature header");
       return reply.status(403).send({ error: "Missing Twilio signature" });
     }
 
-    const baseUrl = process.env.API_BASE_URL ?? `http://localhost:${process.env.API_PORT ?? 3001}`;
+    const baseUrl = process.env.API_BASE_URL?.replace(/\/+$/, "") ?? `http://localhost:${process.env.API_PORT ?? 3001}`;
     const url = `${baseUrl}${request.url}`;
+
+    server.log.info({ url, hasSignature: !!signature, hasBody: !!request.body }, "[webhook] Validating Twilio signature");
 
     const valid = validateTwilioSignature(url, request.body as Record<string, string>, signature);
 
     if (!valid) {
+      server.log.warn({ url }, "[webhook] Invalid Twilio signature");
       return reply.status(403).send({ error: "Invalid Twilio signature" });
     }
   }
@@ -49,11 +53,14 @@ export default async function webhookRoutes(server: FastifyInstance) {
         MessageSid: string;
       };
 
+      server.log.info({ from: body.From, to: body.To, hasSid: !!body.MessageSid }, "[whatsapp] Inbound message received");
+
       // Twilio sends WhatsApp numbers as "whatsapp:+1234567890"
       const phone = body.From?.replace("whatsapp:", "");
       const content = body.Body?.trim();
 
       if (!phone || !content) {
+        server.log.warn({ phone, hasContent: !!content }, "[whatsapp] Missing required fields");
         return reply.status(400).send({ error: "Missing required fields" });
       }
 
@@ -96,9 +103,12 @@ export default async function webhookRoutes(server: FastifyInstance) {
       // Find user
       const user = await server.prisma.user.findUnique({ where: { phone } });
       if (!user) {
+        server.log.warn({ phone }, "[whatsapp] No user found for phone");
         await sendWhatsApp(phone, "Welcome! Download Aura to get started: aura.app");
         return reply.send({ received: true });
       }
+
+      server.log.info({ userId: user.id }, "[whatsapp] User found");
 
       // Check WhatsApp consent
       const consent = await server.prisma.consentRecord.findFirst({
@@ -107,6 +117,7 @@ export default async function webhookRoutes(server: FastifyInstance) {
       });
 
       if (!consent?.granted) {
+        server.log.warn({ userId: user.id }, "[whatsapp] No WhatsApp consent");
         await sendWhatsApp(phone, "Please enable WhatsApp in your Aura settings to chat.");
         return reply.send({ received: true });
       }
