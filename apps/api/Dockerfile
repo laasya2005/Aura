@@ -1,4 +1,4 @@
-# Stage 1: Build
+# Stage 1: Install & Build
 FROM node:20-alpine AS builder
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
@@ -25,8 +25,11 @@ RUN pnpm --filter @aura/db exec -- npx prisma generate && \
     pnpm --filter @aura/queue build && \
     pnpm --filter @aura/api build
 
-# pnpm deploy creates a standalone dir with flat node_modules (no symlinks)
-RUN pnpm --filter @aura/api deploy --prod /prod/api
+# pnpm deploy creates flat node_modules, then copy Prisma generated client
+RUN pnpm --filter @aura/api deploy --prod /prod/api && \
+    PRISMA_SRC=$(find /app/node_modules/.pnpm -path "*/.prisma/client" -type d | head -1) && \
+    PRISMA_DST=$(find /prod/api/node_modules/.pnpm -path "*/.prisma/client" -type d | head -1) && \
+    if [ -n "$PRISMA_SRC" ] && [ -n "$PRISMA_DST" ]; then cp -r "$PRISMA_SRC"/. "$PRISMA_DST"/; fi
 
 # Stage 2: Production
 FROM node:20-alpine AS runner
