@@ -25,33 +25,18 @@ RUN pnpm --filter @aura/db exec -- npx prisma generate && \
     pnpm --filter @aura/queue build && \
     pnpm --filter @aura/api build
 
+# pnpm deploy creates a standalone dir with flat node_modules (no symlinks)
+RUN pnpm --filter @aura/api deploy --prod /prod/api
+
 # Stage 2: Production
 FROM node:20-alpine AS runner
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
-
 RUN addgroup --system aura && adduser --system --ingroup aura aura
 
 WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/packages/shared/package.json ./packages/shared/
-COPY --from=builder /app/packages/db/dist ./packages/db/dist
-COPY --from=builder /app/packages/db/package.json ./packages/db/
-COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
-COPY --from=builder /app/packages/ai/dist ./packages/ai/dist
-COPY --from=builder /app/packages/ai/package.json ./packages/ai/
-COPY --from=builder /app/packages/comms/dist ./packages/comms/dist
-COPY --from=builder /app/packages/comms/package.json ./packages/comms/
-COPY --from=builder /app/packages/queue/dist ./packages/queue/dist
-COPY --from=builder /app/packages/queue/package.json ./packages/queue/
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/package.json ./apps/api/
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-workspace.yaml ./
-COPY --from=builder /app/pnpm-lock.yaml ./
+COPY --from=builder /prod/api ./
 
 USER aura
 ENV NODE_ENV=production
 EXPOSE 3001
 
-CMD ["node", "apps/api/dist/server.js"]
+CMD ["node", "dist/server.js"]
