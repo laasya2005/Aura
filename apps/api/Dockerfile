@@ -1,6 +1,7 @@
-# Stage 1: Install & Build
-FROM node:20-alpine AS builder
+# Stage 1: Install & Build (Debian for OpenSSL compat with Prisma)
+FROM node:20-slim AS builder
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
@@ -32,8 +33,9 @@ RUN pnpm --filter @aura/api deploy --prod /prod/api && \
     if [ -n "$PRISMA_SRC" ] && [ -n "$PRISMA_DST" ]; then cp -r "$PRISMA_SRC"/. "$PRISMA_DST"/; fi
 
 # Stage 2: Production
-FROM node:20-alpine AS runner
-RUN addgroup --system aura && adduser --system --ingroup aura aura
+FROM node:20-slim AS runner
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN groupadd --system aura && useradd --system --gid aura aura
 
 WORKDIR /app
 COPY --from=builder /prod/api ./
