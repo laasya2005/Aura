@@ -48,10 +48,10 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-workspace.yaml ./
-COPY apps/api/start.sh ./apps/api/start.sh
+COPY --from=builder /app/pnpm-lock.yaml ./
 
 USER aura
 ENV NODE_ENV=production
 EXPOSE 3001
 
-CMD ["sh", "apps/api/start.sh"]
+CMD ["node", "apps/api/dist/server.js"]
