@@ -23,6 +23,10 @@ COPY packages/ packages/
 COPY apps/web/ apps/web/
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
+# NEXT_PUBLIC_ vars must be available at build time
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN pnpm --filter @aura/shared build && \
     pnpm --filter @aura/web build
 
@@ -39,6 +43,7 @@ COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
 USER aura
 ENV NODE_ENV=production
 ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
 EXPOSE 3000
 
 CMD ["node", "apps/web/server.js"]
