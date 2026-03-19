@@ -23,7 +23,7 @@ describe("Prompt Builder", () => {
     it("should include system preamble", () => {
       const prompt = buildSystemPrompt(mockAura, mockUser);
       expect(prompt).toContain("You are Aura");
-      expect(prompt).toContain("close friend and accountability buddy");
+      expect(prompt).toContain("accountability coach");
     });
 
     it("should include personality", () => {
