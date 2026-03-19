@@ -216,7 +216,9 @@ export default function SettingsPage() {
           <p className="text-[14px] text-muted-foreground font-medium mb-4">Profile</p>
           <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl divide-y divide-border/50 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center px-6 py-4 gap-2 sm:gap-4">
-              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">Name</label>
+              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">
+                Name
+              </label>
               <div className="flex gap-3 flex-1">
                 <Input
                   value={firstName}
@@ -231,7 +233,9 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center px-6 py-4 gap-2 sm:gap-4">
-              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">Email</label>
+              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">
+                Email
+              </label>
               <Input
                 type="email"
                 value={email}
@@ -261,7 +265,9 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center px-6 py-4 gap-2 sm:gap-4">
-              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">Phone</label>
+              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">
+                Phone
+              </label>
               <Input value={profile?.phone ?? ""} disabled className="opacity-50" />
             </div>
           </div>
@@ -354,7 +360,9 @@ export default function SettingsPage() {
                   )}
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-[24px] sm:text-[32px] font-bold tracking-tight">{plan.price}</span>
+                  <span className="text-[24px] sm:text-[32px] font-bold tracking-tight">
+                    {plan.price}
+                  </span>
                   {plan.period && (
                     <span className="text-[14px] text-muted-foreground">{plan.period}</span>
                   )}

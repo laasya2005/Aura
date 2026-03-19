@@ -142,7 +142,11 @@ export class ConversationService {
     } else {
       const tagMatch = responseContent.match(/\[REMINDER:\s*(\{[^}]+\})\s*\]/);
       if (tagMatch) {
-        try { reminderData = JSON.parse(tagMatch[1]!); } catch { /* skip */ }
+        try {
+          reminderData = JSON.parse(tagMatch[1]!);
+        } catch {
+          /* skip */
+        }
       }
     }
 
@@ -162,7 +166,9 @@ export class ConversationService {
           },
         });
         await addScheduleJob(schedule.id, userId, "CUSTOM", cronExpr, tz);
-        console.log(`[conversation] Created reminder: "${reminderData.label}" at ${cronExpr} (${tz})`);
+        console.log(
+          `[conversation] Created reminder: "${reminderData.label}" at ${cronExpr} (${tz})`
+        );
       } catch (err) {
         console.error("[conversation] Failed to create reminder:", err);
       }
@@ -351,25 +357,34 @@ export class ConversationService {
    * Parse reminder intent from user message.
    * Handles: "remind me at 7:34 pm to go to gym", "set a reminder for 6:43 am to post on linkedin", etc.
    */
-  private parseReminderIntent(message: string): { label: string; hour: number; minute: number } | null {
+  private parseReminderIntent(
+    message: string
+  ): { label: string; hour: number; minute: number } | null {
     const lower = message.toLowerCase();
 
     // Cheap pre-filter before regex
-    const hasKeyword = ["remind", "alarm", "alert", "notify", "wake", "schedule", "text me at"].some(
-      (kw) => lower.includes(kw)
-    );
+    const hasKeyword = [
+      "remind",
+      "alarm",
+      "alert",
+      "notify",
+      "wake",
+      "schedule",
+      "text me at",
+    ].some((kw) => lower.includes(kw));
     if (!hasKeyword) return null;
 
     // Extract time — matches "7:34 pm", "7:34pm", "7 pm", "19:34", "6:43 am", etc.
-    const timeMatch = lower.match(/(\d{1,2})\s*:\s*(\d{2})\s*(am|pm)?/i) ||
-                      lower.match(/(\d{1,2})\s*(am|pm)/i);
+    const timeMatch =
+      lower.match(/(\d{1,2})\s*:\s*(\d{2})\s*(am|pm)?/i) || lower.match(/(\d{1,2})\s*(am|pm)/i);
 
     if (!timeMatch) return null;
 
     let hour = parseInt(timeMatch[1]!, 10);
-    const minute = timeMatch[2] && timeMatch[2].length === 2 && !isNaN(parseInt(timeMatch[2]))
-      ? parseInt(timeMatch[2]!, 10)
-      : 0;
+    const minute =
+      timeMatch[2] && timeMatch[2].length === 2 && !isNaN(parseInt(timeMatch[2]))
+        ? parseInt(timeMatch[2]!, 10)
+        : 0;
     const ampm = timeMatch[3] || timeMatch[2];
 
     // Handle AM/PM
@@ -378,8 +393,9 @@ export class ConversationService {
 
     // Extract label — everything after "to", "for", "about", or "that i can"
     let label = "Check-in";
-    const labelMatch = lower.match(/(?:to|for|about|that i can|so (?:that )?i can)\s+(.+?)(?:\s+at\s+\d|$)/i) ||
-                       lower.match(/remind(?:er)?\s+(?:me\s+)?(?:to|for|about)\s+(.+?)(?:\s+at\s+\d|$)/i);
+    const labelMatch =
+      lower.match(/(?:to|for|about|that i can|so (?:that )?i can)\s+(.+?)(?:\s+at\s+\d|$)/i) ||
+      lower.match(/remind(?:er)?\s+(?:me\s+)?(?:to|for|about)\s+(.+?)(?:\s+at\s+\d|$)/i);
     if (labelMatch && labelMatch[1]) {
       // Clean up and capitalize first letter
       label = labelMatch[1].replace(/[.!?]+$/, "").trim();

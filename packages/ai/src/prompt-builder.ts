@@ -119,7 +119,9 @@ export function buildSystemPrompt(aura: AuraContext, user: UserContext): string 
   if (user.firstName) {
     userParts.push(`The user's name is ${user.firstName}. Use it naturally in conversation.`);
   } else {
-    userParts.push(`You don't know the user's name yet. Ask for it early in the conversation in a natural way.`);
+    userParts.push(
+      `You don't know the user's name yet. Ask for it early in the conversation in a natural way.`
+    );
   }
   userParts.push(`Their timezone is ${user.timezone}.`);
   userParts.push(`Their plan tier is ${user.plan}.`);
@@ -133,7 +135,9 @@ export function buildSystemPrompt(aura: AuraContext, user: UserContext): string 
       userParts.push(`\nActive goals:\n${goalSummaries}`);
     }
   } else {
-    userParts.push(`The user has no goals set up yet. Try to learn about what they want to work on through natural conversation.`);
+    userParts.push(
+      `The user has no goals set up yet. Try to learn about what they want to work on through natural conversation.`
+    );
   }
 
   parts.push(`\nUSER CONTEXT:\n${userParts.join(" ")}`);
@@ -141,7 +145,9 @@ export function buildSystemPrompt(aura: AuraContext, user: UserContext): string 
   // Memory context layer
   if (user.memories && user.memories.length > 0) {
     const memorySummary = user.memories.map((m) => `[${m.type}] ${m.content}`).join("\n");
-    parts.push(`\nMEMORY CONTEXT (from previous conversations — reference naturally):\n${memorySummary}`);
+    parts.push(
+      `\nMEMORY CONTEXT (from previous conversations — reference naturally):\n${memorySummary}`
+    );
   }
 
   // Time context layer
@@ -160,7 +166,9 @@ export function buildSystemPrompt(aura: AuraContext, user: UserContext): string 
   else if (hour >= 17 && hour < 21) timeOfDay = "evening";
   else timeOfDay = "night";
 
-  parts.push(`\nTIME CONTEXT:\nIt is currently ${timeOfDay} for the user (${user.timezone}). Adjust your energy and tone to match the time of day.`);
+  parts.push(
+    `\nTIME CONTEXT:\nIt is currently ${timeOfDay} for the user (${user.timezone}). Adjust your energy and tone to match the time of day.`
+  );
 
   return parts.join("\n");
 }

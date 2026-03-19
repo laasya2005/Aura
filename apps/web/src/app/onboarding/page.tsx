@@ -132,9 +132,7 @@ export default function OnboardingPage() {
   const [data, setData] = useState<Partial<OnboardingData>>(() => {
     const { step: _step, ...rest } = loadSaved();
     return {
-      scheduleCards: [
-        { label: "", time: "09:00", motivation: "" },
-      ],
+      scheduleCards: [{ label: "", time: "09:00", motivation: "" }],
       ...rest,
     };
   });
@@ -160,10 +158,7 @@ export default function OnboardingPage() {
 
   const addScheduleCard = () => {
     update({
-      scheduleCards: [
-        ...(data.scheduleCards ?? []),
-        { label: "", time: "09:00", motivation: "" },
-      ],
+      scheduleCards: [...(data.scheduleCards ?? []), { label: "", time: "09:00", motivation: "" }],
     });
   };
 
@@ -433,7 +428,6 @@ export default function OnboardingPage() {
                       })}
                     </select>
                   </div>
-
                 </div>
 
                 <div>
@@ -492,9 +486,7 @@ export default function OnboardingPage() {
                         ? card.label
                         : `Check-in ${(data.scheduleCards ?? []).length > 1 ? i + 1 : ""}`}
                     </span>
-                    <span className="font-medium">
-                      {formatTime12(card.time)}
-                    </span>
+                    <span className="font-medium">{formatTime12(card.time)}</span>
                   </div>
                 ))}
               </div>

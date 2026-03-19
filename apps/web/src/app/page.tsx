@@ -61,12 +61,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center -mt-16">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="max-w-3xl"
-        >
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-3xl">
           <motion.h1
             variants={fadeUp}
             className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight"
@@ -79,10 +74,7 @@ export default function LandingPage() {
             Do you?
           </motion.h1>
 
-          <motion.p
-            variants={fadeUp}
-            className="mt-5 text-lg sm:text-xl text-white/40 font-medium"
-          >
+          <motion.p variants={fadeUp} className="mt-5 text-lg sm:text-xl text-white/40 font-medium">
             It all starts with one text.
           </motion.p>
 
@@ -111,10 +103,7 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Legal */}
-          <motion.p
-            variants={fadeUp}
-            className="mt-5 text-[13px] text-white/25"
-          >
+          <motion.p variants={fadeUp} className="mt-5 text-[13px] text-white/25">
             By continuing, you agree to our{" "}
             <Link href="/terms" className="underline hover:text-white/40 transition-colors">
               Terms

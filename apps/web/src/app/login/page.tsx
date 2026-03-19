@@ -47,7 +47,9 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } else {
-      setError(res.error?.message ?? (mode === "register" ? "Registration failed" : "Invalid credentials"));
+      setError(
+        res.error?.message ?? (mode === "register" ? "Registration failed" : "Invalid credentials")
+      );
     }
   };
 
@@ -126,7 +128,9 @@ export default function LoginPage() {
               setError("");
             }}
           >
-            {mode === "login" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+            {mode === "login"
+              ? "Don't have an account? Sign up"
+              : "Already have an account? Sign in"}
           </button>
         </div>
       </div>

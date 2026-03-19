@@ -132,7 +132,9 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-[17px] font-semibold">Chat with Aura</p>
-              <p className="text-[14px] text-muted-foreground">Start or continue a conversation with your AI coach</p>
+              <p className="text-[14px] text-muted-foreground">
+                Start or continue a conversation with your AI coach
+              </p>
             </div>
           </div>
           <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />

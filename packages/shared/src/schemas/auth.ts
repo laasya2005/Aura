@@ -3,10 +3,7 @@ import { emailSchema } from "../security/sanitize.js";
 
 export const registerSchema = z.object({
   email: emailSchema,
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128),
+  password: z.string().min(8, "Password must be at least 8 characters").max(128),
   firstName: z.string().trim().min(1).max(100).optional(),
 });
 

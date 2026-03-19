@@ -32,8 +32,8 @@ export default function PrivacyPolicyPage() {
             <p>
               Aura (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) is committed to protecting
               your privacy. This Privacy Policy explains how we collect, use, disclose, and
-              safeguard your information when you use our AI coaching service via iMessage/SMS
-              and our website (collectively, the &quot;Service&quot;).
+              safeguard your information when you use our AI coaching service via iMessage/SMS and
+              our website (collectively, the &quot;Service&quot;).
             </p>
             <p className="mt-2">
               By accessing or using the Service, you agree to this Privacy Policy. If you do not
@@ -59,9 +59,9 @@ export default function PrivacyPolicyPage() {
                 check-in preferences you set up through conversation.
               </li>
               <li>
-                <span className="font-medium">Payment information:</span> If you subscribe to a
-                paid plan, payment is processed securely through Stripe. We do not store your
-                credit card details.
+                <span className="font-medium">Payment information:</span> If you subscribe to a paid
+                plan, payment is processed securely through Stripe. We do not store your credit card
+                details.
               </li>
             </ul>
 
@@ -84,8 +84,8 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>Provide, maintain, and improve the Service.</li>
               <li>
-                Send you personalized coaching messages, reminders, and motivational check-ins
-                via iMessage/SMS.
+                Send you personalized coaching messages, reminders, and motivational check-ins via
+                iMessage/SMS.
               </li>
               <li>
                 Generate AI-powered responses tailored to your goals, personality, and conversation
@@ -106,11 +106,11 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
-                <span className="font-medium">Service providers:</span> We use third-party
-                providers to operate the Service, including Sendblue (iMessage/SMS delivery),
-                Stripe (payment processing), and AI providers (message generation). These
-                providers access your data only as necessary to perform their services and are
-                bound by contractual obligations to protect your information.
+                <span className="font-medium">Service providers:</span> We use third-party providers
+                to operate the Service, including Sendblue (iMessage/SMS delivery), Stripe (payment
+                processing), and AI providers (message generation). These providers access your data
+                only as necessary to perform their services and are bound by contractual obligations
+                to protect your information.
               </li>
               <li>
                 <span className="font-medium">Legal requirements:</span> We may disclose your
@@ -137,8 +137,8 @@ export default function PrivacyPolicyPage() {
             <p>
               We retain your personal information for as long as your account is active or as needed
               to provide the Service. If you opt out by texting STOP, we will delete or anonymize
-              your personal data within 30 days, except where we are required to retain it for
-              legal or regulatory purposes.
+              your personal data within 30 days, except where we are required to retain it for legal
+              or regulatory purposes.
             </p>
           </section>
 
@@ -156,16 +156,16 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-lg font-semibold mb-3">7. Your Rights and Choices</h2>
             <ul className="list-disc pl-6 space-y-1.5">
               <li>
-                <span className="font-medium">Opt out of messaging:</span> Text STOP to Aura at
-                any time to stop receiving messages.
+                <span className="font-medium">Opt out of messaging:</span> Text STOP to Aura at any
+                time to stop receiving messages.
               </li>
               <li>
                 <span className="font-medium">Request data deletion:</span> Contact us at
                 support@aura-app.com to request deletion of your data.
               </li>
               <li>
-                <span className="font-medium">Access your data:</span> Contact us to request a
-                copy of the personal information we hold about you.
+                <span className="font-medium">Access your data:</span> Contact us to request a copy
+                of the personal information we hold about you.
               </li>
               <li>
                 <span className="font-medium">Get help:</span> Text HELP to Aura or email us at
@@ -179,12 +179,12 @@ export default function PrivacyPolicyPage() {
             <p>
               When you text Aura, you consent to receive recurring automated AI-generated messages
               related to your goals, accountability, and motivational coaching. Message frequency
-              varies based on your conversations and configured reminders. Standard message and
-              data rates may apply.
+              varies based on your conversations and configured reminders. Standard message and data
+              rates may apply.
             </p>
             <p className="mt-2">
-              You can opt out at any time by texting STOP. Text HELP for help. Your phone number
-              and messaging consent information will not be shared with third parties for marketing
+              You can opt out at any time by texting STOP. Text HELP for help. Your phone number and
+              messaging consent information will not be shared with third parties for marketing
               purposes.
             </p>
           </section>

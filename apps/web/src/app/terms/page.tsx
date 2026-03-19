@@ -87,8 +87,8 @@ export default function TermsPage() {
 
             <h3 className="font-medium mt-4 mb-2">5.1 Opting In</h3>
             <p>
-              You opt in to Aura messaging by sending a text message to Aura&apos;s phone number
-              or by clicking &quot;Get Started&quot; on our website.
+              You opt in to Aura messaging by sending a text message to Aura&apos;s phone number or
+              by clicking &quot;Get Started&quot; on our website.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.2 Opting Out</h3>
@@ -127,8 +127,8 @@ export default function TermsPage() {
                 schedules.
               </li>
               <li>
-                <span className="font-medium">Pro plan ($9.99/mo):</span> Unlimited messaging,
-                daily check-ins, priority responses, and custom personality tuning.
+                <span className="font-medium">Pro plan ($9.99/mo):</span> Unlimited messaging, daily
+                check-ins, priority responses, and custom personality tuning.
               </li>
               <li>
                 <span className="font-medium">Elite plan ($19.99/mo):</span> Everything unlimited

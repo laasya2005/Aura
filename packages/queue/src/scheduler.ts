@@ -41,10 +41,7 @@ export async function addScheduleJob(
   return job.id;
 }
 
-export async function removeScheduleJob(
-  scheduleId: string,
-  scheduleType: string
-): Promise<void> {
+export async function removeScheduleJob(scheduleId: string, scheduleType: string): Promise<void> {
   const queueNames = new Set<QueueName>();
   const primary = SCHEDULE_TYPE_TO_QUEUE[scheduleType];
   if (primary) queueNames.add(primary);

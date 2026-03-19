@@ -70,13 +70,16 @@ export default function ChatPage() {
     return el.scrollHeight - el.scrollTop - el.clientHeight < 200;
   }, []);
 
-  const scrollToBottom = useCallback((force = false) => {
-    if (force || isNearBottom()) {
-      requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      });
-    }
-  }, [isNearBottom]);
+  const scrollToBottom = useCallback(
+    (force = false) => {
+      if (force || isNearBottom()) {
+        requestAnimationFrame(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        });
+      }
+    },
+    [isNearBottom]
+  );
 
   // Load latest conversation and messages
   useEffect(() => {
@@ -87,9 +90,7 @@ export default function ChatPage() {
         const conv = convRes.data[0]!;
         setConversationId(conv.id);
 
-        const msgRes = await apiFetch<Message[]>(
-          `/conversations/${conv.id}/messages?limit=50`
-        );
+        const msgRes = await apiFetch<Message[]>(`/conversations/${conv.id}/messages?limit=50`);
         if (msgRes.success && msgRes.data) {
           setMessages(msgRes.data);
         }
@@ -108,9 +109,7 @@ export default function ChatPage() {
 
     const interval = setInterval(async () => {
       if (sending) return;
-      const res = await apiFetch<Message[]>(
-        `/conversations/${conversationId}/messages?limit=50`
-      );
+      const res = await apiFetch<Message[]>(`/conversations/${conversationId}/messages?limit=50`);
       if (res.success && res.data) {
         setMessages((prev) => {
           if (res.data!.length !== prev.length) {
@@ -256,10 +255,7 @@ export default function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-1"
-      >
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
         {loadingHistory ? (
           <div className="flex items-center justify-center py-16">
             <div className="h-6 w-6 rounded-full border-2 border-foreground/20 border-t-foreground animate-spin" />
@@ -334,9 +330,18 @@ export default function ChatPage() {
                   </div>
                   <div className="chat-assistant rounded-[18px] rounded-bl-[4px] px-4 py-3">
                     <div className="flex gap-1.5">
-                      <div className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <div className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <div className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <div
+                        className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      />
+                      <div
+                        className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      />
+                      <div
+                        className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      />
                     </div>
                   </div>
                 </motion.div>

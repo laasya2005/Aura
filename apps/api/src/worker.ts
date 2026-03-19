@@ -25,10 +25,7 @@ const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
 const audit = buildAuditLogger(prisma);
 const conversationService = new ConversationService(prisma, redis, audit);
 
-async function recordScheduleSent(
-  userId: string,
-  scheduleId: string
-): Promise<void> {
+async function recordScheduleSent(userId: string, scheduleId: string): Promise<void> {
   try {
     await prisma.scheduleExecution.create({
       data: {
@@ -187,13 +184,7 @@ const streakWorker = createStreakUpdateWorker(async (data) => {
 });
 
 // --- Setup system recurring jobs ---
-const workers = [
-  morningWorker,
-  checkInWorker,
-  eveningWorker,
-  memoryWorker,
-  streakWorker,
-];
+const workers = [morningWorker, checkInWorker, eveningWorker, memoryWorker, streakWorker];
 
 setupSystemJobs()
   .then(async () => {
