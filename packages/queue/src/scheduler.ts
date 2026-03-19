@@ -5,7 +5,6 @@ const SCHEDULE_TYPE_TO_QUEUE: Record<string, QueueName> = {
   MORNING_TEXT: QUEUE_NAMES.MORNING_TEXT,
   CHECK_IN: QUEUE_NAMES.CHECK_IN,
   EVENING_RECAP: QUEUE_NAMES.EVENING_RECAP,
-  VOICE_CALL: QUEUE_NAMES.VOICE_CALL,
   CUSTOM: QUEUE_NAMES.CHECK_IN,
 };
 
@@ -14,25 +13,18 @@ export async function addScheduleJob(
   userId: string,
   scheduleType: string,
   cronExpr: string,
-  timezone: string,
-  channel?: string
+  timezone: string
 ): Promise<string | undefined> {
-  // CUSTOM type routes based on channel
-  let queueName = SCHEDULE_TYPE_TO_QUEUE[scheduleType];
-  if (scheduleType === "CUSTOM" && channel === "VOICE") {
-    queueName = QUEUE_NAMES.VOICE_CALL;
-  }
+  const queueName = SCHEDULE_TYPE_TO_QUEUE[scheduleType];
   if (!queueName) return undefined;
 
   const queue = getQueue(queueName);
 
-  // Remove existing job if any (checks all queues for this scheduleId)
-  await removeScheduleJob(scheduleId, scheduleType, channel);
+  // Remove existing job if any
+  await removeScheduleJob(scheduleId, scheduleType);
 
-  // Use scheduleId in the job name so we can find it later for removal
   const jobName = `${scheduleType}:${scheduleId}`;
 
-  // Add repeatable job with cron
   const job = await queue.add(
     jobName,
     { userId, scheduleId },
@@ -51,24 +43,20 @@ export async function addScheduleJob(
 
 export async function removeScheduleJob(
   scheduleId: string,
-  scheduleType: string,
-  _channel?: string
+  scheduleType: string
 ): Promise<void> {
-  // Check all possible queues this schedule could be in
   const queueNames = new Set<QueueName>();
   const primary = SCHEDULE_TYPE_TO_QUEUE[scheduleType];
   if (primary) queueNames.add(primary);
-  // CUSTOM type can route to either CHECK_IN or VOICE_CALL
+  // CUSTOM type routes to CHECK_IN
   if (scheduleType === "CUSTOM") {
     queueNames.add(QUEUE_NAMES.CHECK_IN);
-    queueNames.add(QUEUE_NAMES.VOICE_CALL);
   }
 
   for (const queueName of queueNames) {
     const queue = getQueue(queueName);
     const repeatableJobs = await queue.getRepeatableJobs();
     for (const job of repeatableJobs) {
-      // Match by job name containing the scheduleId
       if (job.name?.includes(scheduleId)) {
         await queue.removeRepeatableByKey(job.key);
       }
@@ -101,7 +89,6 @@ export async function addStreakUpdateJob(userId: string, goalId: string): Promis
     {
       removeOnComplete: { count: 200 },
       removeOnFail: { count: 50 },
-      // Deduplicate: only one streak check per goal per hour
       jobId: `streak:${goalId}:${new Date().toISOString().slice(0, 13)}`,
     }
   );
@@ -115,7 +102,7 @@ export async function rehydrateSchedules(prisma: {
   schedule: {
     findMany: (args: {
       where: { enabled: boolean };
-      select: { id: true; userId: true; type: true; cronExpr: true; timezone: true; channel: true };
+      select: { id: true; userId: true; type: true; cronExpr: true; timezone: true };
     }) => Promise<
       Array<{
         id: string;
@@ -123,20 +110,19 @@ export async function rehydrateSchedules(prisma: {
         type: string;
         cronExpr: string;
         timezone: string;
-        channel: string;
       }>
     >;
   };
 }): Promise<number> {
   const schedules = await prisma.schedule.findMany({
     where: { enabled: true },
-    select: { id: true, userId: true, type: true, cronExpr: true, timezone: true, channel: true },
+    select: { id: true, userId: true, type: true, cronExpr: true, timezone: true },
   });
 
   let registered = 0;
   for (const s of schedules) {
     try {
-      await addScheduleJob(s.id, s.userId, s.type, s.cronExpr, s.timezone, s.channel);
+      await addScheduleJob(s.id, s.userId, s.type, s.cronExpr, s.timezone);
       registered++;
     } catch (err) {
       console.error(`[scheduler] Failed to rehydrate schedule ${s.id}:`, err);

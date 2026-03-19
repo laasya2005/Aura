@@ -24,8 +24,7 @@ const cronExprSchema = z
   }, "Cron expression must not fire more than once per hour");
 
 export const createScheduleSchema = z.object({
-  type: z.enum(["MORNING_TEXT", "CHECK_IN", "EVENING_RECAP", "VOICE_CALL", "CUSTOM"]),
-  channel: z.enum(["WHATSAPP", "VOICE"]),
+  type: z.enum(["MORNING_TEXT", "CHECK_IN", "EVENING_RECAP", "CUSTOM"]),
   cronExpr: cronExprSchema,
   timezone: z.string().optional(),
   enabled: z.boolean().optional().default(true),
@@ -33,8 +32,7 @@ export const createScheduleSchema = z.object({
 });
 
 export const updateScheduleSchema = z.object({
-  type: z.enum(["MORNING_TEXT", "CHECK_IN", "EVENING_RECAP", "VOICE_CALL", "CUSTOM"]).optional(),
-  channel: z.enum(["WHATSAPP", "VOICE"]).optional(),
+  type: z.enum(["MORNING_TEXT", "CHECK_IN", "EVENING_RECAP", "CUSTOM"]).optional(),
   cronExpr: cronExprSchema.optional(),
   timezone: z.string().optional(),
   enabled: z.boolean().optional(),

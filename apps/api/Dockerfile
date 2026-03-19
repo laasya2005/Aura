@@ -9,7 +9,6 @@ COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/db/package.json packages/db/
 COPY packages/ai/package.json packages/ai/
-COPY packages/comms/package.json packages/comms/
 COPY packages/queue/package.json packages/queue/
 COPY packages/config-ts/package.json packages/config-ts/
 
@@ -22,7 +21,6 @@ RUN pnpm --filter @aura/db exec -- npx prisma generate && \
     pnpm --filter @aura/shared build && \
     pnpm --filter @aura/db build && \
     pnpm --filter @aura/ai build && \
-    pnpm --filter @aura/comms build && \
     pnpm --filter @aura/queue build && \
     pnpm --filter @aura/api build
 
@@ -40,8 +38,17 @@ RUN groupadd --system aura && useradd --system --gid aura aura
 WORKDIR /app
 COPY --from=builder /prod/api ./
 
+# Prisma schema for Railway migrations (set RUN_MIGRATIONS=true)
+COPY --from=builder /app/packages/db/prisma ./prisma
+RUN npm install -g prisma@5.10.0
+
+# Entrypoint handles optional migration before start
+COPY apps/api/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
+
 USER aura
 ENV NODE_ENV=production
 EXPOSE 3001
 
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/server.js"]

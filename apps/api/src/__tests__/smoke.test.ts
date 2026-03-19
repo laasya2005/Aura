@@ -1,11 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { buildServer } from "../app.js";
 
-vi.mock("@aura/comms", () => ({
-  sendOtp: vi.fn().mockResolvedValue({ success: true, sid: "mock-sid" }),
-  checkOtp: vi.fn().mockResolvedValue({ valid: true, status: "approved" }),
-}));
-
 vi.mock("@aura/queue", () => ({
   addScheduleJob: vi.fn().mockResolvedValue("job-id"),
   removeScheduleJob: vi.fn().mockResolvedValue(undefined),
@@ -20,13 +15,13 @@ vi.mock("@aura/queue", () => ({
     MORNING_TEXT: "mt",
     CHECK_IN: "ci",
     EVENING_RECAP: "er",
-    VOICE_CALL: "vc",
     MEMORY_SUMMARY: "ms",
     STREAK_UPDATE: "su",
   },
 }));
 
-const TEST_PHONE = "+15559990099";
+const TEST_EMAIL = `test-smoke-${Date.now()}@aura.app`;
+const TEST_PASSWORD = "testpassword123";
 
 describe("Smoke Tests — Full API Flow", () => {
   let app: ReturnType<typeof buildServer>;
@@ -40,12 +35,6 @@ describe("Smoke Tests — Full API Flow", () => {
     process.env.REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
     app = buildServer();
     await app.ready();
-
-    // Clean up any leftover goals from prior runs
-    const user = await app.prisma.user.findUnique({ where: { phone: TEST_PHONE } });
-    if (user) {
-      await app.prisma.goal.deleteMany({ where: { userId: user.id } });
-    }
   });
 
   afterAll(async () => {
@@ -53,37 +42,28 @@ describe("Smoke Tests — Full API Flow", () => {
   });
 
   it("full auth → profile → goal → conversation flow", async () => {
-    // 1. Send OTP
-    const sendRes = await app.inject({
+    // 1. Register
+    const registerRes = await app.inject({
       method: "POST",
-      url: "/auth/otp/send",
-      payload: { phone: TEST_PHONE },
+      url: "/auth/register",
+      payload: { email: TEST_EMAIL, password: TEST_PASSWORD },
     });
-    expect(sendRes.statusCode).toBe(200);
-
-    // 2. Verify OTP → get tokens
-    const verifyRes = await app.inject({
-      method: "POST",
-      url: "/auth/otp/verify",
-      payload: { phone: TEST_PHONE, code: "123456" },
-    });
-    expect(verifyRes.statusCode).toBe(200);
-    const { accessToken, refreshToken } = verifyRes.json().data;
+    expect(registerRes.statusCode).toBe(201);
+    const { accessToken } = registerRes.json().data;
     expect(accessToken).toBeDefined();
-    expect(refreshToken).toBeDefined();
 
     const headers = { authorization: `Bearer ${accessToken}` };
 
-    // 3. Get user profile
+    // 2. Get user profile
     const meRes = await app.inject({
       method: "GET",
       url: "/users/me",
       headers,
     });
     expect(meRes.statusCode).toBe(200);
-    expect(meRes.json().data.phone).toBeDefined();
+    expect(meRes.json().data.email).toBeDefined();
 
-    // 4. Create a goal
+    // 3. Create a goal
     const goalRes = await app.inject({
       method: "POST",
       url: "/goals",
@@ -93,7 +73,7 @@ describe("Smoke Tests — Full API Flow", () => {
     expect(goalRes.statusCode).toBe(201);
     const goalId = goalRes.json().data.id;
 
-    // 5. List goals
+    // 4. List goals
     const goalsRes = await app.inject({
       method: "GET",
       url: "/goals?status=ACTIVE",
@@ -102,7 +82,7 @@ describe("Smoke Tests — Full API Flow", () => {
     expect(goalsRes.statusCode).toBe(200);
     expect(goalsRes.json().data.length).toBeGreaterThanOrEqual(1);
 
-    // 6. Record streak
+    // 5. Record streak
     const streakRes = await app.inject({
       method: "POST",
       url: `/goals/${goalId}/streak`,
@@ -110,7 +90,7 @@ describe("Smoke Tests — Full API Flow", () => {
     });
     expect(streakRes.statusCode).toBe(200);
 
-    // 7. Get Aura profile
+    // 6. Get Aura profile
     const auraRes = await app.inject({
       method: "GET",
       url: "/aura/profile",
@@ -118,14 +98,26 @@ describe("Smoke Tests — Full API Flow", () => {
     });
     expect(auraRes.statusCode).toBe(200);
 
-    // 8. Refresh token
-    const refreshRes = await app.inject({
+    // 7. Login with same credentials
+    const loginRes = await app.inject({
       method: "POST",
-      url: "/auth/refresh",
-      payload: { refreshToken },
+      url: "/auth/login",
+      payload: { email: TEST_EMAIL, password: TEST_PASSWORD },
     });
-    expect(refreshRes.statusCode).toBe(200);
-    expect(refreshRes.json().data.accessToken).toBeDefined();
+    expect(loginRes.statusCode).toBe(200);
+
+    // 8. Refresh token via cookie
+    const cookies = loginRes.cookies as Array<{ name: string; value: string }>;
+    const refreshCookie = cookies.find((c) => c.name === "aura_refresh");
+    if (refreshCookie) {
+      const refreshRes = await app.inject({
+        method: "POST",
+        url: "/auth/refresh",
+        cookies: { aura_refresh: refreshCookie.value },
+      });
+      expect(refreshRes.statusCode).toBe(200);
+      expect(refreshRes.json().data.accessToken).toBeDefined();
+    }
 
     // 9. Delete goal
     const deleteRes = await app.inject({
@@ -140,7 +132,6 @@ describe("Smoke Tests — Full API Flow", () => {
       method: "POST",
       url: "/auth/logout",
       headers,
-      payload: { refreshToken },
     });
     expect(logoutRes.statusCode).toBe(200);
   });

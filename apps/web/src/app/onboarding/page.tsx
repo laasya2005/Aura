@@ -78,12 +78,9 @@ const MODES = [
   },
 ];
 
-type ReminderType = "CALL" | "TEXT";
-
 interface ScheduleCard {
   label: string;
   time: string;
-  reminder: ReminderType;
   motivation: string;
 }
 
@@ -123,11 +120,6 @@ function formatTime12(time: string): string {
   return `${String(hour).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
-function reminderToChannels(reminder: ReminderType): string[] {
-  if (reminder === "CALL") return ["VOICE"];
-  return ["WHATSAPP"];
-}
-
 export default function OnboardingPage() {
   const router = useRouter();
   const { refreshUser } = useAuth();
@@ -141,7 +133,7 @@ export default function OnboardingPage() {
     const { step: _step, ...rest } = loadSaved();
     return {
       scheduleCards: [
-        { label: "", time: "09:00", reminder: "TEXT" as ReminderType, motivation: "" },
+        { label: "", time: "09:00", motivation: "" },
       ],
       ...rest,
     };
@@ -170,7 +162,7 @@ export default function OnboardingPage() {
     update({
       scheduleCards: [
         ...(data.scheduleCards ?? []),
-        { label: "", time: "09:00", reminder: "TEXT" as ReminderType, motivation: "" },
+        { label: "", time: "09:00", motivation: "" },
       ],
     });
   };
@@ -200,63 +192,23 @@ export default function OnboardingPage() {
       }
 
       await Promise.all(
-        (data.scheduleCards ?? []).flatMap((card) => {
-          const channels = reminderToChannels(card.reminder);
+        (data.scheduleCards ?? []).map((card) => {
           const cronExpr = timeToCron(card.time);
-          const requests: Promise<unknown>[] = [];
-
-          // WhatsApp text schedule
-          if (channels.includes("WHATSAPP")) {
-            requests.push(
-              apiFetch("/schedules", {
-                method: "POST",
-                body: JSON.stringify({
-                  type: "MORNING_TEXT",
-                  channel: "WHATSAPP",
-                  cronExpr,
-                  metadata: card.label.trim() ? { label: card.label.trim() } : undefined,
-                }),
-              })
-            );
-          }
-
-          // Voice call schedule
-          if (channels.includes("VOICE")) {
-            requests.push(
-              apiFetch("/schedules", {
-                method: "POST",
-                body: JSON.stringify({
-                  type: "VOICE_CALL",
-                  channel: "VOICE",
-                  cronExpr,
-                  metadata: card.label.trim() ? { label: card.label.trim() } : undefined,
-                }),
-              })
-            );
-          }
-
-          return requests;
+          return apiFetch("/schedules", {
+            method: "POST",
+            body: JSON.stringify({
+              type: "MORNING_TEXT",
+              cronExpr,
+              metadata: card.label.trim() ? { label: card.label.trim() } : undefined,
+            }),
+          });
         })
       );
 
-      const allReminders = (data.scheduleCards ?? []).map((c) => c.reminder);
-      const needsWhatsApp = allReminders.some((r) => r === "TEXT");
-      const needsVoice = allReminders.some((r) => r === "CALL");
-
-      await Promise.all([
-        needsWhatsApp
-          ? apiFetch("/users/me/consent", {
-              method: "POST",
-              body: JSON.stringify({ type: "WHATSAPP", granted: true }),
-            })
-          : Promise.resolve(),
-        needsVoice
-          ? apiFetch("/users/me/consent", {
-              method: "POST",
-              body: JSON.stringify({ type: "VOICE", granted: true }),
-            })
-          : Promise.resolve(),
-      ]);
+      await apiFetch("/users/me/consent", {
+        method: "POST",
+        body: JSON.stringify({ type: "NOTIFICATIONS", granted: true }),
+      });
 
       await apiFetch("/users/me/onboarding/complete", { method: "POST" });
       await refreshUser();
@@ -482,60 +434,6 @@ export default function OnboardingPage() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1.5 block">Reminder</label>
-                    <div className="flex rounded-xl border border-border/60 overflow-hidden">
-                      {(["CALL", "TEXT"] as ReminderType[]).map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => updateScheduleCard(i, { reminder: type })}
-                          className={cn(
-                            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-all duration-200",
-                            card.reminder === type
-                              ? "bg-foreground text-background"
-                              : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                          )}
-                        >
-                          {type === "CALL" && (
-                            <>
-                              <svg
-                                className="w-3.5 h-3.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                                />
-                              </svg>
-                              Call
-                            </>
-                          )}
-                          {type === "TEXT" && (
-                            <>
-                              <svg
-                                className="w-3.5 h-3.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                />
-                              </svg>
-                              Text
-                            </>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
 
                 <div>
@@ -595,8 +493,7 @@ export default function OnboardingPage() {
                         : `Check-in ${(data.scheduleCards ?? []).length > 1 ? i + 1 : ""}`}
                     </span>
                     <span className="font-medium">
-                      {formatTime12(card.time)} &middot;{" "}
-                      {card.reminder.charAt(0) + card.reminder.slice(1).toLowerCase()}
+                      {formatTime12(card.time)}
                     </span>
                   </div>
                 ))}

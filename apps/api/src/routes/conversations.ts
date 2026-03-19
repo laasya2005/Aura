@@ -23,7 +23,7 @@ export default async function conversationRoutes(server: FastifyInstance) {
       request.user!.sub,
       request.user!.plan,
       parsed.data.content,
-      parsed.data.channel as "WHATSAPP" | "VOICE",
+      "WEB",
       request.ip
     );
 

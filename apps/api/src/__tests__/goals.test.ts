@@ -1,11 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { buildServer } from "../app.js";
 
-vi.mock("@aura/comms", () => ({
-  sendOtp: vi.fn().mockResolvedValue({ success: true, sid: "mock-sid" }),
-  checkOtp: vi.fn().mockResolvedValue({ valid: true, status: "approved" }),
-}));
-
 vi.mock("@aura/queue", () => ({
   addScheduleJob: vi.fn().mockResolvedValue("job-id"),
   removeScheduleJob: vi.fn().mockResolvedValue(undefined),
@@ -20,19 +15,19 @@ vi.mock("@aura/queue", () => ({
     MORNING_TEXT: "mt",
     CHECK_IN: "ci",
     EVENING_RECAP: "er",
-    VOICE_CALL: "vc",
     MEMORY_SUMMARY: "ms",
     STREAK_UPDATE: "su",
   },
 }));
 
-const TEST_PHONE = "+15559990001";
+const TEST_EMAIL = `test-goals-${Date.now()}@aura.app`;
+const TEST_PASSWORD = "testpassword123";
 
 async function getAccessToken(app: ReturnType<typeof buildServer>): Promise<string> {
   const res = await app.inject({
     method: "POST",
-    url: "/auth/otp/verify",
-    payload: { phone: TEST_PHONE, code: "123456" },
+    url: "/auth/register",
+    payload: { email: TEST_EMAIL, password: TEST_PASSWORD },
   });
   return res.json().data.accessToken;
 }
@@ -52,17 +47,10 @@ describe("Goals Routes", () => {
     app = buildServer();
     await app.ready();
     token = await getAccessToken(app);
-
-    // Clean up any leftover goals from prior test runs
-    const user = await app.prisma.user.findUnique({ where: { phone: TEST_PHONE } });
-    if (user) {
-      await app.prisma.goal.deleteMany({ where: { userId: user.id } });
-    }
   });
 
   afterAll(async () => {
-    // Clean up goals created during tests
-    const user = await app.prisma.user.findUnique({ where: { phone: TEST_PHONE } });
+    const user = await app.prisma.user.findUnique({ where: { email: TEST_EMAIL } });
     if (user) {
       await app.prisma.goal.deleteMany({ where: { userId: user.id } });
     }
@@ -119,7 +107,6 @@ describe("Goals Routes", () => {
     const goalId = goals[0]?.id;
 
     if (!goalId) {
-      // Create a goal first if none exist
       const createRes = await app.inject({
         method: "POST",
         url: "/goals",

@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { sendOtpSchema, verifyOtpSchema, refreshTokenSchema, AppError } from "@aura/shared";
+import { registerSchema, loginSchema, refreshTokenSchema, AppError } from "@aura/shared";
 import { AuthService } from "../services/auth.service.js";
 import { buildAuditLogger } from "../services/audit.service.js";
 import { authMiddleware } from "../middleware/auth.js";
@@ -10,45 +10,58 @@ export default async function authRoutes(server: FastifyInstance) {
   const authService = new AuthService(server.prisma, server.redis, audit);
   const authRateLimit = createRateLimitMiddleware(server.redis, RATE_LIMITS.auth);
 
-  // POST /auth/otp/send
+  function setRefreshCookie(reply: FastifyReply, token: string) {
+    reply.setCookie("aura_refresh", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      path: "/auth",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+  }
+
+  // POST /auth/register
   server.post(
-    "/auth/otp/send",
+    "/auth/register",
     { preHandler: [authRateLimit] },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const parsed = sendOtpSchema.safeParse(request.body);
-      if (!parsed.success) {
-        throw AppError.validation("Invalid phone number", parsed.error.flatten());
-      }
-
-      await authService.sendOtp(parsed.data.phone, request.ip);
-
-      return reply.status(200).send({
-        success: true,
-        data: { message: "Verification code sent" },
-      });
-    }
-  );
-
-  // POST /auth/otp/verify
-  server.post(
-    "/auth/otp/verify",
-    { preHandler: [authRateLimit] },
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const parsed = verifyOtpSchema.safeParse(request.body);
+      const parsed = registerSchema.safeParse(request.body);
       if (!parsed.success) {
         throw AppError.validation("Invalid input", parsed.error.flatten());
       }
 
-      const result = await authService.verifyOtp(parsed.data.phone, parsed.data.code, request.ip);
+      const result = await authService.register(
+        parsed.data.email,
+        parsed.data.password,
+        request.ip,
+        parsed.data.firstName
+      );
 
-      // Set refresh token as httpOnly cookie
-      reply.setCookie("aura_refresh", result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-        path: "/auth",
-        maxAge: 7 * 24 * 60 * 60, // 7 days
+      setRefreshCookie(reply, result.refreshToken);
+
+      return reply.status(201).send({
+        success: true,
+        data: {
+          accessToken: result.accessToken,
+          user: result.user,
+        },
       });
+    }
+  );
+
+  // POST /auth/login
+  server.post(
+    "/auth/login",
+    { preHandler: [authRateLimit] },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const parsed = loginSchema.safeParse(request.body);
+      if (!parsed.success) {
+        throw AppError.validation("Invalid input", parsed.error.flatten());
+      }
+
+      const result = await authService.login(parsed.data.email, parsed.data.password, request.ip);
+
+      setRefreshCookie(reply, result.refreshToken);
 
       return reply.status(200).send({
         success: true,
@@ -62,7 +75,6 @@ export default async function authRoutes(server: FastifyInstance) {
 
   // POST /auth/refresh
   server.post("/auth/refresh", async (request: FastifyRequest, reply: FastifyReply) => {
-    // Read refresh token from httpOnly cookie, fall back to body for backward compat
     const cookieToken = request.cookies?.aura_refresh;
     const bodyParsed = refreshTokenSchema.safeParse(request.body);
     const refreshToken = cookieToken ?? bodyParsed.data?.refreshToken;
@@ -73,14 +85,7 @@ export default async function authRoutes(server: FastifyInstance) {
 
     const tokens = await authService.refresh(refreshToken, request.ip);
 
-    // Update the httpOnly cookie with the new refresh token
-    reply.setCookie("aura_refresh", tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-      path: "/auth",
-      maxAge: 7 * 24 * 60 * 60,
-    });
+    setRefreshCookie(reply, tokens.refreshToken);
 
     return reply.status(200).send({
       success: true,
@@ -94,13 +99,10 @@ export default async function authRoutes(server: FastifyInstance) {
     { preHandler: [authMiddleware] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const userId = request.user!.sub;
-
-      // Accept optional refresh token in body for targeted revocation
       const body = request.body as { refreshToken?: string } | undefined;
       const refreshToken = request.cookies?.aura_refresh ?? body?.refreshToken ?? "";
       await authService.logout(userId, refreshToken, request.ip);
 
-      // Clear the refresh token cookie
       reply.clearCookie("aura_refresh", { path: "/auth" });
 
       return reply.status(200).send({

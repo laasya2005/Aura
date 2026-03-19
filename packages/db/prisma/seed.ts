@@ -7,10 +7,11 @@ async function main() {
 
   // Create test user
   const user = await prisma.user.upsert({
-    where: { phone: "+15551234567" },
+    where: { email: "test@aura.app" },
     update: {},
     create: {
-      phone: "+15551234567",
+      email: "test@aura.app",
+      passwordHash: "$2a$12$placeholder.hash.for.seed.only",
       firstName: "Test",
       lastName: "User",
       timezone: "America/New_York",
@@ -73,7 +74,7 @@ async function main() {
     data: {
       userId: user.id,
       type: "MORNING_TEXT",
-      channel: "WHATSAPP",
+      channel: "WEB",
       cronExpr: "0 7 * * *",
       timezone: "America/New_York",
       enabled: true,
@@ -84,7 +85,7 @@ async function main() {
     data: {
       userId: user.id,
       type: "CHECK_IN",
-      channel: "WHATSAPP",
+      channel: "WEB",
       cronExpr: "0 12 * * *",
       timezone: "America/New_York",
       enabled: true,
@@ -97,25 +98,25 @@ async function main() {
   const conversation = await prisma.conversation.create({
     data: {
       userId: user.id,
-      channel: "WHATSAPP",
+      channel: "WEB",
       messages: {
         create: [
           {
             role: "ASSISTANT",
             content:
               "Good morning! Ready to crush your run today? The weather looks perfect for it 🏃‍♂️",
-            channel: "WHATSAPP",
+            channel: "WEB",
           },
           {
             role: "USER",
             content: "Yes! Just lacing up my shoes now",
-            channel: "WHATSAPP",
+            channel: "WEB",
           },
           {
             role: "ASSISTANT",
             content:
               "That's the spirit! Remember, consistency beats intensity. Enjoy every step 💪",
-            channel: "WHATSAPP",
+            channel: "WEB",
           },
         ],
       },
@@ -142,7 +143,7 @@ async function main() {
   await prisma.consentRecord.create({
     data: {
       userId: user.id,
-      type: "WHATSAPP",
+      type: "MARKETING",
       granted: true,
       ipAddress: "127.0.0.1",
     },

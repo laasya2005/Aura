@@ -13,7 +13,7 @@ export { buildServer };
 // --- Start ---
 const start = async () => {
   const server = buildServer();
-  const port = Number(process.env.API_PORT) || 3001;
+  const port = Number(process.env.PORT) || Number(process.env.API_PORT) || 3001;
   const host = process.env.API_HOST ?? "0.0.0.0";
 
   // Graceful shutdown

@@ -13,7 +13,6 @@ interface Summary {
   currentStreak: number;
   longestStreak: number;
   weeklyAvg: number;
-  channelBreakdown: Record<string, number>;
   engagedToday: boolean;
 }
 
@@ -25,8 +24,6 @@ interface CalendarDay {
 
 interface EngagementDataPoint {
   date: string;
-  WHATSAPP: number;
-  VOICE: number;
   total: number;
 }
 
@@ -48,7 +45,7 @@ interface ScheduleStats {
   }>;
 }
 
-/* ── Activity Ring (Apple Watch style) ── */
+/* Activity Ring (Apple Watch style) */
 function ActivityRing({
   value,
   size = 160,
@@ -101,7 +98,7 @@ function ActivityRing({
   );
 }
 
-/* ── Minimal bar chart (no axes, no grid, no dots) ── */
+/* Single bar chart (no stacked channels) */
 function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
   const maxTotal = Math.max(1, ...data.map((d) => d.total));
 
@@ -113,15 +110,13 @@ function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
     );
   }
 
-  // Show only last 14 days for cleanliness
   const recent = data.slice(-14);
 
   return (
     <div className="space-y-4">
       <div className="flex items-end gap-[6px] h-[140px]">
         {recent.map((day) => {
-          const whatsappH = (day.WHATSAPP / maxTotal) * 100;
-          const voiceH = (day.VOICE / maxTotal) * 100;
+          const h = (day.total / maxTotal) * 100;
           const isToday = new Date(day.date).toDateString() === new Date().toDateString();
 
           return (
@@ -139,25 +134,16 @@ function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
                 </div>
               </div>
 
-              {/* Stacked bars */}
-              <div className="w-full flex flex-col justify-end items-stretch gap-[1px] flex-1">
-                {day.VOICE > 0 && (
+              {/* Bar */}
+              <div className="w-full flex flex-col justify-end items-stretch flex-1">
+                {day.total > 0 ? (
                   <div
-                    className="w-full rounded-t-[4px] bg-blue-500/80 transition-all duration-300"
-                    style={{ height: `${voiceH}%`, minHeight: day.VOICE > 0 ? 3 : 0 }}
+                    className="w-full rounded-[4px] bg-emerald-500/80 transition-all duration-300"
+                    style={{ height: `${h}%`, minHeight: 3 }}
                   />
+                ) : (
+                  <div className="w-full rounded-[4px] bg-border/40 h-[3px]" />
                 )}
-                {day.WHATSAPP > 0 && (
-                  <div
-                    className={cn(
-                      "w-full transition-all duration-300",
-                      day.VOICE > 0 ? "rounded-b-[4px]" : "rounded-[4px]",
-                      "bg-emerald-500/80"
-                    )}
-                    style={{ height: `${whatsappH}%`, minHeight: day.WHATSAPP > 0 ? 3 : 0 }}
-                  />
-                )}
-                {day.total === 0 && <div className="w-full rounded-[4px] bg-border/40 h-[3px]" />}
               </div>
 
               {/* Day label */}
@@ -178,70 +164,14 @@ function MiniBarChart({ data }: { data: EngagementDataPoint[] }) {
       <div className="flex items-center gap-5">
         <div className="flex items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-          <span className="text-[13px] text-muted-foreground">WhatsApp</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-2.5 w-2.5 rounded-full bg-blue-500/80" />
-          <span className="text-[13px] text-muted-foreground">Voice</span>
+          <span className="text-[13px] text-muted-foreground">Check-ins</span>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Channel bars (replaces pie chart) ── */
-function ChannelBars({ data }: { data: Record<string, number> }) {
-  const channels = Object.entries(data).filter(([ch]) => ch === "WHATSAPP" || ch === "VOICE");
-  const total = channels.reduce((a, [, b]) => a + b, 0);
-
-  if (total === 0) {
-    return (
-      <div className="py-8 text-center">
-        <p className="text-[15px] text-muted-foreground">No engagement data yet.</p>
-      </div>
-    );
-  }
-
-  const colors: Record<string, string> = {
-    WHATSAPP: "bg-emerald-500",
-    VOICE: "bg-blue-500",
-  };
-
-  return (
-    <div className="space-y-5">
-      {/* Combined bar */}
-      <div className="h-3 w-full rounded-full overflow-hidden flex">
-        {channels.map(([channel, count]) => (
-          <div
-            key={channel}
-            className={cn("h-full transition-all duration-500", colors[channel])}
-            style={{ width: `${(count / total) * 100}%` }}
-          />
-        ))}
-      </div>
-
-      {/* Channel rows */}
-      {channels.map(([channel, count]) => (
-        <div key={channel} className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={cn("h-3 w-3 rounded-full", colors[channel])} />
-            <span className="text-[16px] font-medium">
-              {channel === "WHATSAPP" ? "WhatsApp" : "Voice"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[16px] font-bold tabular-nums">{count}</span>
-            <span className="text-[14px] text-muted-foreground tabular-nums w-12 text-right">
-              {Math.round((count / total) * 100)}%
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── Page ── */
+/* Page */
 export default function AnalyticsPage() {
   useAuth();
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -295,13 +225,13 @@ export default function AnalyticsPage() {
             </div>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-[64px] font-bold tracking-tighter leading-none">
+              <span className="text-[40px] sm:text-[64px] font-bold tracking-tighter leading-none">
                 {summary.currentStreak}
               </span>
               <span className="text-[22px] text-muted-foreground font-medium">day streak</span>
             </div>
 
-            <div className="mt-8 flex gap-8">
+            <div className="mt-8 flex flex-wrap gap-4 sm:gap-8">
               <div>
                 <p className="text-[28px] font-bold tracking-tight">{summary.longestStreak}</p>
                 <p className="text-[14px] text-muted-foreground">best streak</p>
@@ -321,14 +251,24 @@ export default function AnalyticsPage() {
           <div className="rounded-[20px] border border-border/50 bg-card/80 backdrop-blur-xl p-8 flex flex-col items-center justify-center">
             {scheduleStats && scheduleStats.totalSent > 0 ? (
               <>
-                <ActivityRing value={scheduleStats.overallRate} />
+                <div className="sm:hidden">
+                  <ActivityRing value={scheduleStats.overallRate} size={120} />
+                </div>
+                <div className="hidden sm:block">
+                  <ActivityRing value={scheduleStats.overallRate} size={160} />
+                </div>
                 <p className="text-[14px] text-muted-foreground mt-4">
                   {scheduleStats.totalCompleted} of {scheduleStats.totalSent} check-ins completed
                 </p>
               </>
             ) : (
               <div className="text-center py-6">
-                <ActivityRing value={0} />
+                <div className="sm:hidden">
+                  <ActivityRing value={0} size={120} />
+                </div>
+                <div className="hidden sm:block">
+                  <ActivityRing value={0} />
+                </div>
                 <p className="text-[15px] text-muted-foreground mt-4">No check-ins yet</p>
               </div>
             )}
@@ -346,32 +286,15 @@ export default function AnalyticsPage() {
         </CardContent>
       </Card>
 
-      {/* Two-column: Recent engagement bars + Channels */}
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Last 2 Weeks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MiniBarChart data={engagementData} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Channels</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {summary ? (
-              <ChannelBars data={summary.channelBreakdown} />
-            ) : (
-              <div className="py-8 text-center">
-                <p className="text-[15px] text-muted-foreground">No data yet.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Recent engagement bars */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Last 2 Weeks</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MiniBarChart data={engagementData} />
+        </CardContent>
+      </Card>
 
       {/* Schedule breakdown (only if data) */}
       {scheduleStats && scheduleStats.totalSent > 0 && (

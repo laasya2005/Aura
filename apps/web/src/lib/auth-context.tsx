@@ -16,6 +16,7 @@ interface User {
   isNew: boolean;
   firstName?: string;
   lastName?: string;
+  email?: string;
   phone?: string;
   timezone?: string;
   status?: string;

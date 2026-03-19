@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  ScrollText,
+  MessageCircle,
   BarChart3,
   Calendar,
   Settings,
@@ -24,7 +24,7 @@ const navItems = [
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/aura", label: "Aura", icon: AuraNavIcon },
   { href: "/schedules", label: "Schedules", icon: Calendar },
-  { href: "/chat", label: "Activity", icon: ScrollText },
+  { href: "/chat", label: "Chat", icon: MessageCircle },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

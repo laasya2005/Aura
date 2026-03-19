@@ -1,6 +1,7 @@
-# Worker reuses the same API image — just changes the CMD
-FROM node:20-alpine AS builder
+# Stage 1: Install & Build (Debian for OpenSSL compat with Prisma)
+FROM node:20-slim AS builder
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
@@ -8,7 +9,6 @@ COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/db/package.json packages/db/
 COPY packages/ai/package.json packages/ai/
-COPY packages/comms/package.json packages/comms/
 COPY packages/queue/package.json packages/queue/
 COPY packages/config-ts/package.json packages/config-ts/
 
@@ -21,34 +21,24 @@ RUN pnpm --filter @aura/db exec -- npx prisma generate && \
     pnpm --filter @aura/shared build && \
     pnpm --filter @aura/db build && \
     pnpm --filter @aura/ai build && \
-    pnpm --filter @aura/comms build && \
     pnpm --filter @aura/queue build && \
     pnpm --filter @aura/api build
 
-FROM node:20-alpine AS runner
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+# pnpm deploy creates flat node_modules with prod deps only
+RUN pnpm --filter @aura/api deploy --prod /prod/api && \
+    PRISMA_SRC=$(find /app/node_modules/.pnpm -path "*/.prisma/client" -type d | head -1) && \
+    PRISMA_DST=$(find /prod/api/node_modules/.pnpm -path "*/.prisma/client" -type d | head -1) && \
+    if [ -n "$PRISMA_SRC" ] && [ -n "$PRISMA_DST" ]; then cp -r "$PRISMA_SRC"/. "$PRISMA_DST"/; fi
 
-RUN addgroup --system aura && adduser --system --ingroup aura aura
+# Stage 2: Production
+FROM node:20-slim AS runner
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN groupadd --system aura && useradd --system --gid aura aura
 
 WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/packages/shared/package.json ./packages/shared/
-COPY --from=builder /app/packages/db/dist ./packages/db/dist
-COPY --from=builder /app/packages/db/package.json ./packages/db/
-COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
-COPY --from=builder /app/packages/ai/dist ./packages/ai/dist
-COPY --from=builder /app/packages/ai/package.json ./packages/ai/
-COPY --from=builder /app/packages/comms/dist ./packages/comms/dist
-COPY --from=builder /app/packages/comms/package.json ./packages/comms/
-COPY --from=builder /app/packages/queue/dist ./packages/queue/dist
-COPY --from=builder /app/packages/queue/package.json ./packages/queue/
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/package.json ./apps/api/
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /prod/api ./
 
 USER aura
 ENV NODE_ENV=production
 
-CMD ["node", "apps/api/dist/worker.js"]
+CMD ["node", "dist/worker.js"]

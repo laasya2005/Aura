@@ -6,7 +6,6 @@ export const updateAuraProfileSchema = z.object({
   humor: z.number().min(0).max(1).optional(),
   directness: z.number().min(0).max(1).optional(),
   energy: z.number().min(0).max(1).optional(),
-  voiceId: z.string().optional(),
 });
 
 export const tuneAuraSchema = z.object({

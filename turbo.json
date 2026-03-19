@@ -14,14 +14,6 @@
       "cache": false,
       "persistent": true
     },
-    "tunnel": {
-      "cache": false,
-      "persistent": true
-    },
-    "voice-agent": {
-      "cache": false,
-      "persistent": true
-    },
     "lint": {
       "dependsOn": ["^build"]
     },

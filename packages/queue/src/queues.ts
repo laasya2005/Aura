@@ -4,7 +4,6 @@ export const QUEUE_NAMES = {
   MORNING_TEXT: "morning-text",
   CHECK_IN: "check-in",
   EVENING_RECAP: "evening-recap",
-  VOICE_CALL: "voice-call",
   MEMORY_SUMMARY: "memory-summary",
   STREAK_UPDATE: "streak-update",
 } as const;
@@ -52,11 +51,6 @@ export interface CheckInJobData {
 }
 
 export interface EveningRecapJobData {
-  userId: string;
-  scheduleId: string;
-}
-
-export interface VoiceCallJobData {
   userId: string;
   scheduleId: string;
 }

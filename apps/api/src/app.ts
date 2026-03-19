@@ -60,20 +60,6 @@ export function buildServer() {
     }
   );
 
-  // Parse application/x-www-form-urlencoded (Twilio webhooks)
-  server.addContentTypeParser(
-    "application/x-www-form-urlencoded",
-    { parseAs: "string" },
-    (_req, body: string, done) => {
-      try {
-        const parsed = Object.fromEntries(new URLSearchParams(body));
-        done(null, parsed);
-      } catch (err) {
-        done(err as Error, undefined);
-      }
-    }
-  );
-
   // --- Global hooks ---
   server.addHook("onRequest", requestIdMiddleware);
 

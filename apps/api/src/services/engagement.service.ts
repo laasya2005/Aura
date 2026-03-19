@@ -1,4 +1,4 @@
-import type { PrismaClient, Prisma, Channel, EngagementType } from "@aura/db";
+import type { PrismaClient, Prisma, EngagementType } from "@aura/db";
 import type { AuditLogger } from "@aura/shared";
 import { GoalService } from "./goal.service.js";
 
@@ -24,7 +24,6 @@ export class EngagementService {
    */
   async recordEngagement(
     userId: string,
-    channel: Channel,
     type: EngagementType,
     metadata?: Record<string, unknown>
   ): Promise<{ milestones: Array<{ goalId: string; goalTitle: string; milestone: number }> }> {
@@ -32,7 +31,7 @@ export class EngagementService {
     await this.prisma.engagement.create({
       data: {
         userId,
-        channel,
+        channel: "WEB",
         type,
         metadata: (metadata as Prisma.InputJsonValue) ?? undefined,
       },
@@ -67,7 +66,7 @@ export class EngagementService {
    * Mark recent SENT schedule executions as COMPLETED when user responds.
    * Looks for executions sent in the last 4 hours on the same channel.
    */
-  async completeScheduleExecutions(userId: string, channel: Channel): Promise<void> {
+  async completeScheduleExecutions(userId: string): Promise<void> {
     const fourHoursAgo = new Date();
     fourHoursAgo.setHours(fourHoursAgo.getHours() - 4);
 
@@ -75,7 +74,7 @@ export class EngagementService {
     await this.prisma.scheduleExecution.updateMany({
       where: {
         userId,
-        channel,
+        channel: "WEB",
         status: "SENT",
         firedAt: { gte: fourHoursAgo },
       },
@@ -116,12 +115,11 @@ export class EngagementService {
       select: { id: true, type: true, channel: true, metadata: true, createdAt: true },
     });
 
-    // Get all engagements (WhatsApp + Voice) in range
+    // Get all engagements in range
     const engagements = await this.prisma.engagement.findMany({
       where: {
         userId,
         createdAt: { gte: startDate, lte: endDate },
-        channel: { in: ["WHATSAPP", "VOICE"] },
       },
       select: { createdAt: true, channel: true },
     });
@@ -273,8 +271,7 @@ export class EngagementService {
     userId: string,
     period: "daily" | "weekly" | "monthly" = "daily",
     start?: Date,
-    end?: Date,
-    channel?: Channel
+    end?: Date
   ) {
     const now = new Date();
     const defaultStart = new Date(now);
@@ -283,35 +280,26 @@ export class EngagementService {
     const startDate = start ?? defaultStart;
     const endDate = end ?? now;
 
-    const where = {
-      userId,
-      createdAt: { gte: startDate, lte: endDate },
-      ...(channel ? { channel } : {}),
-    };
-
     const engagements = await this.prisma.engagement.findMany({
-      where,
+      where: {
+        userId,
+        createdAt: { gte: startDate, lte: endDate },
+      },
       orderBy: { createdAt: "asc" },
-      select: { channel: true, createdAt: true },
+      select: { createdAt: true },
     });
 
     // Group by period
-    const grouped = new Map<string, Record<string, number>>();
+    const grouped = new Map<string, number>();
 
     for (const eng of engagements) {
-      if (eng.channel !== "WHATSAPP" && eng.channel !== "VOICE") continue;
       const key = this.periodKey(eng.createdAt, period);
-      if (!grouped.has(key)) {
-        grouped.set(key, { WHATSAPP: 0, VOICE: 0 });
-      }
-      const bucket = grouped.get(key)!;
-      bucket[eng.channel] = (bucket[eng.channel] ?? 0) + 1;
+      grouped.set(key, (grouped.get(key) ?? 0) + 1);
     }
 
-    return Array.from(grouped.entries()).map(([date, channels]) => ({
+    return Array.from(grouped.entries()).map(([date, total]) => ({
       date,
-      ...channels,
-      total: Object.values(channels).reduce((a, b) => a + b, 0),
+      total,
     }));
   }
 
@@ -372,18 +360,10 @@ export class EngagementService {
     // Engagement days in last 30 days
     const recentEngagements = await this.prisma.engagement.findMany({
       where: { userId, createdAt: { gte: thirtyDaysAgo } },
-      select: { createdAt: true, channel: true },
+      select: { createdAt: true },
     });
 
     const uniqueDays = new Set(recentEngagements.map((e) => toDateKey(e.createdAt, tz)));
-
-    // Channel breakdown
-    const channelCounts: Record<string, number> = { WHATSAPP: 0, VOICE: 0 };
-    for (const eng of recentEngagements) {
-      if (eng.channel in channelCounts) {
-        channelCounts[eng.channel] = (channelCounts[eng.channel] ?? 0) + 1;
-      }
-    }
 
     // Overall engagement streak (last 365 days max for performance)
     const oneYearAgo = new Date(now);
@@ -449,7 +429,6 @@ export class EngagementService {
       currentStreak,
       longestStreak,
       weeklyAvg,
-      channelBreakdown: channelCounts,
       engagedToday,
     };
   }

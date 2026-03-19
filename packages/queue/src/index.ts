@@ -7,7 +7,6 @@ export {
   type MorningTextJobData,
   type CheckInJobData,
   type EveningRecapJobData,
-  type VoiceCallJobData,
   type MemorySummaryJobData,
   type StreakUpdateJobData,
 } from "./queues.js";
@@ -23,7 +22,6 @@ export {
 
 export { createMorningTextWorker } from "./workers/morning-text.worker.js";
 export { createCheckInWorker } from "./workers/check-in.worker.js";
-export { createVoiceCallWorker } from "./workers/voice-call.worker.js";
 export { createMemorySummaryWorker } from "./workers/memory-summary.worker.js";
 export { createStreakUpdateWorker } from "./workers/streak-update.worker.js";
 export { createEveningRecapWorker } from "./workers/evening-recap.worker.js";

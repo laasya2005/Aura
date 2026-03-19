@@ -24,7 +24,7 @@ export default function TermsPage() {
 
       <div className="mx-auto max-w-4xl px-4 pt-28 pb-16">
         <h1 className="text-3xl font-bold">Terms and Conditions</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Last updated: March 14, 2026</p>
+        <p className="mt-2 text-sm text-muted-foreground">Last updated: March 18, 2026</p>
 
         <div className="mt-10 space-y-8 text-sm leading-relaxed text-foreground/90">
           <section>
@@ -41,17 +41,17 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold mb-3">2. Program Description</h2>
             <p>
               Aura is an AI-powered accountability companion that helps users achieve their goals
-              through personalized check-in messages, motivational content, and progress tracking.
-              The Service is delivered through our web application and, with your consent, via
-              WhatsApp messages and automated voice calls.
+              through personalized iMessage conversations, motivational check-ins, and progress
+              tracking. The Service is delivered via iMessage (SMS/text messaging) to your phone.
             </p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
-                <span className="font-medium">Program name:</span> Aura Goal Check-ins
+                <span className="font-medium">Program name:</span> Aura AI Coach
               </li>
               <li>
                 <span className="font-medium">Message frequency:</span> Varies based on your
-                configured schedules. You control when and how often you receive messages.
+                conversation and configured reminders. You control when and how often you receive
+                messages.
               </li>
               <li>
                 <span className="font-medium">Message and data rates may apply.</span> Contact your
@@ -70,51 +70,45 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3">4. Account Registration</h2>
+            <h2 className="text-lg font-semibold mb-3">4. Account and Communication</h2>
             <p>
-              To use the Service, you must create an account using a valid phone number. You are
-              responsible for maintaining the confidentiality of your account and for all activities
-              that occur under your account. You agree to provide accurate and complete information
-              and to update it as necessary.
+              By texting Aura, you consent to receive recurring AI-generated messages via iMessage
+              or SMS at the phone number you text from. Your account is automatically created based
+              on your phone number. You are responsible for all messages sent from your number.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3">5. WhatsApp and Voice Communications</h2>
+            <h2 className="text-lg font-semibold mb-3">5. iMessage and SMS Communications</h2>
             <p>
-              By opting in to WhatsApp or voice communications through the Service, you consent to
-              receive recurring automated WhatsApp messages and/or voice calls from Aura at the
-              phone number you provided. These messages will relate to your goals, schedules, streak
-              updates, and motivational check-ins.
+              By texting Aura, you consent to receive recurring automated messages related to your
+              goals, reminders, motivational check-ins, and accountability coaching.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.1 Opting In</h3>
             <p>
-              You opt in to WhatsApp/voice communications by enabling them during onboarding,
-              creating schedules with WhatsApp or voice channels, or enabling them in your
-              notification settings.
+              You opt in to Aura messaging by sending a text message to Aura&apos;s phone number
+              or by clicking &quot;Get Started&quot; on our website.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.2 Opting Out</h3>
-            <p>You can opt out of WhatsApp messages at any time by:</p>
+            <p>You can opt out at any time by:</p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
-                Sending <span className="font-bold">STOP</span> to Aura on WhatsApp.
+                Texting <span className="font-bold">STOP</span> to Aura.
               </li>
-              <li>Disabling WhatsApp notifications in your account Settings.</li>
-              <li>Deleting your schedules that use WhatsApp.</li>
-              <li>Deleting your account.</li>
+              <li>Contacting us at support@aura-app.com.</li>
             </ul>
             <p className="mt-2">
-              After opting out, you will receive a final confirmation message and will no longer
-              receive WhatsApp messages from Aura unless you opt back in.
+              After opting out, you will no longer receive messages from Aura unless you text again
+              to opt back in.
             </p>
 
             <h3 className="font-medium mt-4 mb-2">5.3 Getting Help</h3>
-            <p>For help with WhatsApp messaging, you can:</p>
+            <p>For help with Aura messaging, you can:</p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
-                Send <span className="font-bold">HELP</span> to Aura on WhatsApp.
+                Text <span className="font-bold">HELP</span> to Aura.
               </li>
               <li>Contact us at support@aura-app.com.</li>
             </ul>
@@ -129,21 +123,21 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 space-y-1.5 mt-2">
               <li>
-                <span className="font-medium">Free plan:</span> Limited features at no cost.
+                <span className="font-medium">Free plan:</span> Basic messaging with limited
+                schedules.
               </li>
               <li>
-                <span className="font-medium">Pro plan ($9.99/mo):</span> Expanded goals, schedules,
-                WhatsApp + voice, and custom personality tuning.
+                <span className="font-medium">Pro plan ($9.99/mo):</span> Unlimited messaging,
+                daily check-ins, priority responses, and custom personality tuning.
               </li>
               <li>
-                <span className="font-medium">Elite plan ($24.99/mo):</span> Full access to all
-                features including natural language tuning and context imports.
+                <span className="font-medium">Elite plan ($19.99/mo):</span> Everything unlimited
+                including custom personality and advanced features.
               </li>
             </ul>
             <p className="mt-2">
-              You may upgrade, downgrade, or cancel your subscription at any time through the
-              Settings page or the Stripe billing portal. Cancellations take effect at the end of
-              the current billing period.
+              You may upgrade, downgrade, or cancel your subscription at any time. Cancellations
+              take effect at the end of the current billing period.
             </p>
           </section>
 
@@ -218,9 +212,9 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold mb-3">13. Account Termination</h2>
             <p>
-              You may delete your account at any time through the Settings page. We reserve the
-              right to suspend or terminate your account if you violate these Terms or engage in
-              conduct that we determine is harmful to the Service or other users.
+              You may stop using Aura at any time by texting STOP. We reserve the right to suspend
+              or terminate your account if you violate these Terms or engage in conduct that we
+              determine is harmful to the Service or other users.
             </p>
           </section>
 

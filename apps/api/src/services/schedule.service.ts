@@ -1,4 +1,4 @@
-import type { PrismaClient, Schedule, Prisma, ConsentType } from "@aura/db";
+import type { PrismaClient, Schedule, Prisma } from "@aura/db";
 import {
   AppError,
   type AuditLogger,
@@ -6,12 +6,6 @@ import {
   type UpdateScheduleInput,
 } from "@aura/shared";
 import { addScheduleJob, removeScheduleJob } from "@aura/queue";
-
-// Map schedule channels to the consent type needed
-const CHANNEL_CONSENT_MAP: Record<string, ConsentType> = {
-  VOICE: "VOICE",
-  WHATSAPP: "WHATSAPP",
-};
 
 const PLAN_SCHEDULE_LIMITS: Record<string, number> = {
   FREE: 10,
@@ -63,7 +57,7 @@ export class ScheduleService {
       data: {
         userId,
         type: input.type,
-        channel: input.channel,
+        channel: "WEB",
         cronExpr: input.cronExpr,
         timezone: input.timezone ?? user?.timezone ?? "America/New_York",
         enabled: input.enabled ?? true,
@@ -76,23 +70,9 @@ export class ScheduleService {
       action: "schedule.created",
       resource: "schedule",
       resourceId: schedule.id,
-      metadata: { type: schedule.type, channel: schedule.channel },
+      metadata: { type: schedule.type },
       ipAddress: ip,
     });
-
-    // Auto-grant consent for the channel if not already granted (skip if user previously revoked)
-    const consentType = CHANNEL_CONSENT_MAP[schedule.channel];
-    if (consentType) {
-      const existing = await this.prisma.consentRecord.findFirst({
-        where: { userId, type: consentType },
-        orderBy: { grantedAt: "desc" },
-      });
-      if (!existing) {
-        await this.prisma.consentRecord.create({
-          data: { userId, type: consentType, granted: true },
-        });
-      }
-    }
 
     // Create BullMQ repeatable job
     if (schedule.enabled) {
@@ -101,9 +81,8 @@ export class ScheduleService {
         userId,
         schedule.type,
         schedule.cronExpr,
-        schedule.timezone,
-        schedule.channel
-      ).catch(() => {}); // Non-fatal: log failure but don't block
+        schedule.timezone
+      ).catch(() => {});
     }
 
     return schedule;
@@ -122,7 +101,6 @@ export class ScheduleService {
 
     const data: Record<string, unknown> = {};
     if (input.type !== undefined) data.type = input.type;
-    if (input.channel !== undefined) data.channel = input.channel;
     if (input.cronExpr !== undefined) data.cronExpr = input.cronExpr;
     if (input.timezone !== undefined) data.timezone = input.timezone;
     if (input.enabled !== undefined) data.enabled = input.enabled;
@@ -149,11 +127,10 @@ export class ScheduleService {
         userId,
         schedule.type,
         schedule.cronExpr,
-        schedule.timezone,
-        schedule.channel
+        schedule.timezone
       ).catch(() => {});
     } else {
-      await removeScheduleJob(schedule.id, schedule.type, schedule.channel).catch(() => {});
+      await removeScheduleJob(schedule.id, schedule.type).catch(() => {});
     }
 
     return schedule;
@@ -175,7 +152,6 @@ export class ScheduleService {
       ipAddress: ip,
     });
 
-    // Remove BullMQ job
-    await removeScheduleJob(scheduleId, existing.type, existing.channel).catch(() => {});
+    await removeScheduleJob(scheduleId, existing.type).catch(() => {});
   }
 }

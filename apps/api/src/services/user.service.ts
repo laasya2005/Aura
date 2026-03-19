@@ -94,8 +94,8 @@ export class UserService {
       data: {
         status: "DELETED",
         deletedAt: new Date(),
-        phone: `deleted_${userId}`,
-        email: null,
+        phone: null,
+        email: `deleted_${userId}@deleted.aura.app`,
         firstName: null,
         lastName: null,
       },

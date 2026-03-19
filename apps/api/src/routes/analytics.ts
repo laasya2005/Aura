@@ -17,20 +17,18 @@ export default async function analyticsRoutes(server: FastifyInstance) {
       period: query.period,
       start: query.start,
       end: query.end,
-      channel: query.channel,
     });
 
     if (!parsed.success) {
       throw AppError.validation("Invalid query parameters", parsed.error.flatten());
     }
 
-    const { period, start, end, channel } = parsed.data;
+    const { period, start, end } = parsed.data;
     const stats = await engagementService.getEngagementStats(
       request.user!.sub,
       period,
       start ? new Date(start) : undefined,
-      end ? new Date(end) : undefined,
-      channel
+      end ? new Date(end) : undefined
     );
 
     return reply.send({ success: true, data: stats });

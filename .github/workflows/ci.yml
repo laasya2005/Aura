@@ -52,7 +52,7 @@ jobs:
       - run: pnpm build
 
       - name: Run unit tests (packages only — API integration tests require local DB)
-        run: pnpm --filter @aura/shared --filter @aura/ai --filter @aura/comms --filter @aura/queue test
+        run: pnpm --filter @aura/shared --filter @aura/ai --filter @aura/queue test
 
   docker-build:
     name: Docker Build

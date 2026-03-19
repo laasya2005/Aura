@@ -12,6 +12,7 @@ import {
   type UserContext,
 } from "@aura/ai";
 import { AppError, ErrorCode, type AuditLogger, AuditActions, type Channel } from "@aura/shared";
+import { addScheduleJob } from "@aura/queue";
 
 const MESSAGE_RATE_LIMIT_KEY = "msg:rl:";
 const MESSAGE_RATE_LIMIT_WINDOW = 60; // 1 minute
@@ -32,7 +33,7 @@ export class ConversationService {
     userId: string,
     plan: string,
     content: string,
-    channel: Channel = "WHATSAPP",
+    channel: Channel = "WEB",
     ip?: string
   ): Promise<{
     message: { id: string; role: string; content: string; createdAt: Date };
@@ -78,14 +79,14 @@ export class ConversationService {
       };
     }
 
-    // Get or create active conversation
-    const conversation = await this.getOrCreateConversation(userId, channel);
+    // Get or create conversation + load AI context in parallel
+    const [conversation, { auraContext, userContext }] = await Promise.all([
+      this.getOrCreateConversation(userId, channel),
+      this.loadContext(userId),
+    ]);
 
     // Store user message
     const userMsg = await this.storeMessage(conversation.id, "USER", content, channel);
-
-    // Load context for AI
-    const { auraContext, userContext } = await this.loadContext(userId);
 
     // Get the most recent 20 messages (excluding the one we just stored),
     // then reverse to chronological order for the AI prompt
@@ -132,6 +133,44 @@ export class ConversationService {
       responseContent = `${responseContent}\n\n${crisis.responseOverride}`;
     }
 
+    // Parse reminder from user message or AI [REMINDER] tag
+    const reminderParsed = this.parseReminderIntent(content);
+    let reminderData: { label: string; hour: number; minute: number; days: string } | null = null;
+
+    if (reminderParsed) {
+      reminderData = { ...reminderParsed, days: "*" };
+    } else {
+      const tagMatch = responseContent.match(/\[REMINDER:\s*(\{[^}]+\})\s*\]/);
+      if (tagMatch) {
+        try { reminderData = JSON.parse(tagMatch[1]!); } catch { /* skip */ }
+      }
+    }
+
+    if (reminderData) {
+      const tz = userContext.timezone;
+      const cronExpr = `${reminderData.minute} ${reminderData.hour} * * ${reminderData.days}`;
+      try {
+        const schedule = await this.prisma.schedule.create({
+          data: {
+            userId,
+            type: "CUSTOM",
+            channel: channel === "SMS" ? "SMS" : "WEB",
+            cronExpr,
+            timezone: tz,
+            enabled: true,
+            metadata: { label: reminderData.label },
+          },
+        });
+        await addScheduleJob(schedule.id, userId, "CUSTOM", cronExpr, tz);
+        console.log(`[conversation] Created reminder: "${reminderData.label}" at ${cronExpr} (${tz})`);
+      } catch (err) {
+        console.error("[conversation] Failed to create reminder:", err);
+      }
+    }
+
+    // Strip any [REMINDER] tag from visible message
+    responseContent = responseContent.replace(/\s*\[REMINDER:\s*\{[^}]+\}\s*\]/, "").trim();
+
     // Store AI response
     const responseMsg = await this.storeMessage(
       conversation.id,
@@ -163,7 +202,7 @@ export class ConversationService {
   async generateProactiveMessage(
     userId: string,
     type: "morning" | "check_in" | "evening",
-    channel: Channel = "WHATSAPP",
+    channel: Channel = "WEB",
     scheduleLabel?: string
   ): Promise<{ content: string; conversationId: string }> {
     const { auraContext, userContext } = await this.loadContext(userId);
@@ -307,6 +346,57 @@ export class ConversationService {
   }
 
   // --- Private helpers ---
+
+  /**
+   * Parse reminder intent from user message.
+   * Handles: "remind me at 7:34 pm to go to gym", "set a reminder for 6:43 am to post on linkedin", etc.
+   */
+  private parseReminderIntent(message: string): { label: string; hour: number; minute: number } | null {
+    const lower = message.toLowerCase();
+
+    // Cheap pre-filter before regex
+    const hasKeyword = ["remind", "alarm", "alert", "notify", "wake", "schedule", "text me at"].some(
+      (kw) => lower.includes(kw)
+    );
+    if (!hasKeyword) return null;
+
+    // Extract time — matches "7:34 pm", "7:34pm", "7 pm", "19:34", "6:43 am", etc.
+    const timeMatch = lower.match(/(\d{1,2})\s*:\s*(\d{2})\s*(am|pm)?/i) ||
+                      lower.match(/(\d{1,2})\s*(am|pm)/i);
+
+    if (!timeMatch) return null;
+
+    let hour = parseInt(timeMatch[1]!, 10);
+    const minute = timeMatch[2] && timeMatch[2].length === 2 && !isNaN(parseInt(timeMatch[2]))
+      ? parseInt(timeMatch[2]!, 10)
+      : 0;
+    const ampm = timeMatch[3] || timeMatch[2];
+
+    // Handle AM/PM
+    if (typeof ampm === "string" && /pm/i.test(ampm) && hour < 12) hour += 12;
+    if (typeof ampm === "string" && /am/i.test(ampm) && hour === 12) hour = 0;
+
+    // Extract label — everything after "to", "for", "about", or "that i can"
+    let label = "Check-in";
+    const labelMatch = lower.match(/(?:to|for|about|that i can|so (?:that )?i can)\s+(.+?)(?:\s+at\s+\d|$)/i) ||
+                       lower.match(/remind(?:er)?\s+(?:me\s+)?(?:to|for|about)\s+(.+?)(?:\s+at\s+\d|$)/i);
+    if (labelMatch && labelMatch[1]) {
+      // Clean up and capitalize first letter
+      label = labelMatch[1].replace(/[.!?]+$/, "").trim();
+      label = label.charAt(0).toUpperCase() + label.slice(1);
+    } else {
+      // Try to get label from text after the time
+      const afterTime = lower.match(/\d{1,2}(?::\d{2})?\s*(?:am|pm)?\s+(?:to|for|about)\s+(.+)/i);
+      if (afterTime && afterTime[1]) {
+        label = afterTime[1].replace(/[.!?]+$/, "").trim();
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+    }
+
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+
+    return { label, hour, minute };
+  }
 
   private async checkRateLimit(userId: string, plan: string): Promise<void> {
     const key = `${MESSAGE_RATE_LIMIT_KEY}${userId}`;

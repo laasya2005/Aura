@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
 import { formatEnum } from "@/lib/utils";
-import { ArrowUpRight, ScrollText } from "lucide-react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
+import { AuraLogo } from "@/components/ui/aura-logo";
 
 interface ConversationPreview {
   id: string;
-  channel: string;
   startedAt: string;
   lastMessage?: { content: string; role: string; createdAt: string };
 }
@@ -19,7 +19,6 @@ interface ConversationPreview {
 interface SchedulePreview {
   id: string;
   type: string;
-  channel: string;
   cronExpr: string;
   enabled: boolean;
   metadata?: { label?: string } | null;
@@ -59,10 +58,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Hero greeting with streak */}
-      <div className="rounded-[20px] border border-border/50 bg-card/80 backdrop-blur-xl p-8">
+      <div className="rounded-[20px] border border-border/50 bg-card/80 backdrop-blur-xl p-5 sm:p-8">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-[34px] font-bold tracking-tight">
+            <h1 className="text-[24px] sm:text-[34px] font-bold tracking-tight">
               {greeting} {user?.firstName ?? "there"}
             </h1>
           </div>
@@ -73,14 +72,14 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="mt-6 flex items-center gap-10">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:flex sm:items-center sm:gap-10">
           {/* Streak */}
           <div className="flex items-center gap-4">
             <div className="h-14 w-14 rounded-[16px] bg-accent flex items-center justify-center">
               <span className="text-[28px]">🔥</span>
             </div>
             <div>
-              <p className="text-[32px] font-bold tracking-tight leading-none">
+              <p className="text-[24px] sm:text-[32px] font-bold tracking-tight leading-none">
                 {engagementStreak}
               </p>
               <p className="text-[14px] text-muted-foreground mt-0.5">day streak</p>
@@ -88,11 +87,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Divider */}
-          <div className="h-12 w-px bg-border" />
+          <div className="hidden sm:block h-12 w-px bg-border" />
 
           {/* Active schedules */}
           <div>
-            <p className="text-[32px] font-bold tracking-tight leading-none">
+            <p className="text-[24px] sm:text-[32px] font-bold tracking-tight leading-none">
               {activeSchedules.length}
             </p>
             <p className="text-[14px] text-muted-foreground mt-0.5">
@@ -101,11 +100,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Divider */}
-          <div className="h-12 w-px bg-border" />
+          <div className="hidden sm:block h-12 w-px bg-border" />
 
           {/* Plan */}
           <div>
-            <p className="text-[32px] font-bold tracking-tight leading-none">
+            <p className="text-[24px] sm:text-[32px] font-bold tracking-tight leading-none">
               {formatEnum(user?.plan ?? "FREE")}
             </p>
             <p className="text-[14px] text-muted-foreground mt-0.5">plan</p>
@@ -114,7 +113,7 @@ export default function DashboardPage() {
           {/* Status dot */}
           {engagedToday && (
             <>
-              <div className="h-12 w-px bg-border" />
+              <div className="hidden sm:block h-12 w-px bg-border" />
               <div className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[14px] text-emerald-500 font-medium">Active today</span>
@@ -124,6 +123,22 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Chat with Aura CTA */}
+      <Link href="/chat">
+        <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl p-4 sm:p-6 flex items-center justify-between hover:border-foreground/15 transition-all duration-200 cursor-pointer group">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full bg-foreground flex items-center justify-center text-background">
+              <MessageCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[17px] font-semibold">Chat with Aura</p>
+              <p className="text-[14px] text-muted-foreground">Start or continue a conversation with your AI coach</p>
+            </div>
+          </div>
+          <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+        </div>
+      </Link>
+
       {/* Two-column: Conversations + Schedules */}
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Conversations */}
@@ -132,7 +147,7 @@ export default function DashboardPage() {
             <CardTitle>Recent Conversations</CardTitle>
             <Link href="/chat">
               <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-                Activity <ArrowUpRight className="h-3 w-3" />
+                Chat <ArrowUpRight className="h-3 w-3" />
               </Button>
             </Link>
           </CardHeader>
@@ -141,7 +156,7 @@ export default function DashboardPage() {
               <div className="py-10 text-center">
                 <p className="text-[17px] text-muted-foreground">Nothing here yet.</p>
                 <p className="text-[14px] text-muted-foreground/60 mt-1">
-                  Conversations from voice and WhatsApp will appear here.
+                  Start a conversation with Aura.
                 </p>
               </div>
             ) : (
@@ -149,12 +164,12 @@ export default function DashboardPage() {
                 {conversations.map((conv) => (
                   <Link
                     key={conv.id}
-                    href={`/chat?id=${conv.id}`}
+                    href="/chat"
                     className="flex items-center justify-between rounded-[12px] px-4 py-3 -mx-2 hover:bg-accent transition-all duration-200"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="h-9 w-9 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                        <ScrollText className="h-4 w-4 text-muted-foreground" />
+                        <AuraLogo className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
                         {conv.lastMessage ? (
@@ -163,7 +178,6 @@ export default function DashboardPage() {
                           <p className="text-[15px] text-muted-foreground">Empty conversation</p>
                         )}
                         <p className="text-[13px] text-muted-foreground mt-0.5">
-                          {formatEnum(conv.channel)} &middot;{" "}
                           {new Date(conv.startedAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -202,7 +216,6 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-0.5">
                 {activeSchedules.slice(0, 5).map((schedule) => {
-                  const channelEmoji = schedule.channel === "VOICE" ? "📞" : "💬";
                   const label = schedule.metadata?.label ?? formatEnum(schedule.type);
 
                   return (
@@ -212,13 +225,10 @@ export default function DashboardPage() {
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-9 w-9 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                          <span className="text-[18px]">{channelEmoji}</span>
+                          <span className="text-[18px]">🔔</span>
                         </div>
                         <div className="min-w-0">
                           <p className="text-[15px] font-medium truncate">{label}</p>
-                          <p className="text-[13px] text-muted-foreground mt-0.5">
-                            {formatEnum(schedule.channel)}
-                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">

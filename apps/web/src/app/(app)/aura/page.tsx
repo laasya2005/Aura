@@ -12,7 +12,6 @@ interface AuraProfile {
   directness: number;
   energy: number;
   customPrompt?: string;
-  voiceId?: string;
   personalityPrompt?: string;
 }
 

@@ -34,10 +34,8 @@ export function createAuditLogger(
 // Standard audit actions
 export const AuditActions = {
   // Auth
-  OTP_SENT: "auth.otp.sent",
-  OTP_VERIFIED: "auth.otp.verified",
-  OTP_FAILED: "auth.otp.failed",
   LOGIN: "auth.login",
+  REGISTER: "auth.register",
   LOGOUT: "auth.logout",
   TOKEN_REFRESH: "auth.token.refresh",
 

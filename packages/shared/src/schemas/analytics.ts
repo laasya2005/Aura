@@ -4,7 +4,6 @@ export const engagementStatsSchema = z.object({
   period: z.enum(["daily", "weekly", "monthly"]).default("daily"),
   start: z.string().datetime().optional(),
   end: z.string().datetime().optional(),
-  channel: z.enum(["WHATSAPP", "VOICE"]).optional(),
 });
 
 export const streakCalendarSchema = z.object({

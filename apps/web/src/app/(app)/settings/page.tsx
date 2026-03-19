@@ -37,7 +37,7 @@ const PLANS = [
     price: "$0",
     period: "",
     emoji: "🆓",
-    features: ["10 schedules", "WhatsApp check-ins", "Basic streak tracking"],
+    features: ["10 schedules", "Chat check-ins", "Basic streak tracking"],
   },
   {
     key: "PRO",
@@ -47,10 +47,10 @@ const PLANS = [
     emoji: "⚡",
     features: [
       "25 schedules",
-      "WhatsApp + Voice check-ins",
+      "Unlimited chat",
       "Aura personality tuning",
       "Advanced analytics",
-      "Priority support",
+      "Priority responses",
     ],
   },
   {
@@ -61,7 +61,7 @@ const PLANS = [
     emoji: "👑",
     features: [
       "100 schedules",
-      "All channels",
+      "Unlimited everything",
       "Custom Aura personality",
       "Group accountability",
       "Dedicated support",
@@ -192,11 +192,10 @@ export default function SettingsPage() {
   };
 
   const currentPlan = profile?.plan ?? user?.plan ?? "FREE";
-  const consentTypes = ["WHATSAPP", "VOICE", "MARKETING", "DATA_PROCESSING"];
+  const consentTypes = ["NOTIFICATIONS", "MARKETING", "DATA_PROCESSING"];
 
   const CONSENT_META: Record<string, { label: string; desc: string; emoji: string }> = {
-    WHATSAPP: { label: "WhatsApp", desc: "WhatsApp messages", emoji: "💬" },
-    VOICE: { label: "Voice", desc: "Voice calls", emoji: "📞" },
+    NOTIFICATIONS: { label: "Notifications", desc: "Check-in notifications", emoji: "🔔" },
     MARKETING: { label: "Marketing", desc: "Product updates", emoji: "📣" },
     DATA_PROCESSING: { label: "AI Data", desc: "AI personalization", emoji: "🤖" },
   };
@@ -216,8 +215,8 @@ export default function SettingsPage() {
         <div className="flex flex-col">
           <p className="text-[14px] text-muted-foreground font-medium mb-4">Profile</p>
           <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl divide-y divide-border/50 overflow-hidden">
-            <div className="flex items-center px-6 py-4 gap-4">
-              <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">Name</label>
+            <div className="flex flex-col sm:flex-row sm:items-center px-6 py-4 gap-2 sm:gap-4">
+              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">Name</label>
               <div className="flex gap-3 flex-1">
                 <Input
                   value={firstName}
@@ -231,8 +230,8 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
-            <div className="flex items-center px-6 py-4 gap-4">
-              <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">Email</label>
+            <div className="flex flex-col sm:flex-row sm:items-center px-6 py-4 gap-2 sm:gap-4">
+              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">Email</label>
               <Input
                 type="email"
                 value={email}
@@ -240,8 +239,8 @@ export default function SettingsPage() {
                 placeholder="you@example.com"
               />
             </div>
-            <div className="flex items-center px-6 py-4 gap-4">
-              <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center px-6 py-4 gap-2 sm:gap-4">
+              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">
                 Timezone
               </label>
               <div className="flex-1">
@@ -261,8 +260,8 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
-            <div className="flex items-center px-6 py-4 gap-4">
-              <label className="text-[15px] text-muted-foreground w-24 flex-shrink-0">Phone</label>
+            <div className="flex flex-col sm:flex-row sm:items-center px-6 py-4 gap-2 sm:gap-4">
+              <label className="text-[15px] text-muted-foreground sm:w-24 sm:flex-shrink-0">Phone</label>
               <Input value={profile?.phone ?? ""} disabled className="opacity-50" />
             </div>
           </div>
@@ -355,7 +354,7 @@ export default function SettingsPage() {
                   )}
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-[32px] font-bold tracking-tight">{plan.price}</span>
+                  <span className="text-[24px] sm:text-[32px] font-bold tracking-tight">{plan.price}</span>
                   {plan.period && (
                     <span className="text-[14px] text-muted-foreground">{plan.period}</span>
                   )}

@@ -66,7 +66,6 @@ export class AuraService {
       ...(input.humor !== undefined ? { humor: input.humor } : {}),
       ...(input.directness !== undefined ? { directness: input.directness } : {}),
       ...(input.energy !== undefined ? { energy: input.energy } : {}),
-      ...(input.voiceId !== undefined ? { voiceId: input.voiceId } : {}),
     };
 
     const profile = existing

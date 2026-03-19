@@ -1,11 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { buildServer } from "../app.js";
 
-vi.mock("@aura/comms", () => ({
-  sendOtp: vi.fn(),
-  checkOtp: vi.fn(),
-}));
-
 vi.mock("@aura/queue", () => ({
   addScheduleJob: vi.fn(),
   removeScheduleJob: vi.fn(),
@@ -20,7 +15,6 @@ vi.mock("@aura/queue", () => ({
     MORNING_TEXT: "mt",
     CHECK_IN: "ci",
     EVENING_RECAP: "er",
-    VOICE_CALL: "vc",
     MEMORY_SUMMARY: "ms",
     STREAK_UPDATE: "su",
   },

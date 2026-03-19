@@ -12,7 +12,6 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 interface Schedule {
   id: string;
   type: string;
-  channel: string;
   cronExpr: string;
   timezone: string;
   enabled: boolean;
@@ -23,7 +22,6 @@ const TYPE_SUGGESTIONS = [
   { value: "MORNING_TEXT", label: "Morning check-in" },
   { value: "CHECK_IN", label: "Midday check-in" },
   { value: "EVENING_RECAP", label: "Evening recap" },
-  { value: "VOICE_CALL", label: "Voice call" },
   { value: "CUSTOM", label: "Workout reminder" },
   { value: "CUSTOM", label: "Hydration reminder" },
   { value: "CUSTOM", label: "Meditation prompt" },
@@ -34,52 +32,52 @@ const PRESETS = [
   {
     label: "Morning person",
     emoji: "🌅",
-    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 7 * * *", channel: "WHATSAPP" }],
+    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 7 * * *" }],
   },
   {
     label: "Night owl",
     emoji: "🦉",
-    schedules: [{ type: "EVENING_RECAP", cronExpr: "0 23 * * *", channel: "WHATSAPP" }],
+    schedules: [{ type: "EVENING_RECAP", cronExpr: "0 23 * * *" }],
   },
   {
     label: "9-to-5",
     emoji: "💼",
-    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 8 * * 1-5", channel: "WHATSAPP" }],
+    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 8 * * 1-5" }],
   },
   {
     label: "Fitness",
     emoji: "🏋️",
-    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 6 * * *", channel: "WHATSAPP" }],
+    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 6 * * *" }],
   },
   {
     label: "Student",
     emoji: "📚",
-    schedules: [{ type: "CHECK_IN", cronExpr: "0 14 * * 1-5", channel: "WHATSAPP" }],
+    schedules: [{ type: "CHECK_IN", cronExpr: "0 14 * * 1-5" }],
   },
   {
     label: "Mindfulness",
     emoji: "🧘",
-    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 7 * * *", channel: "WHATSAPP" }],
+    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 7 * * *" }],
   },
   {
     label: "Entrepreneur",
     emoji: "🚀",
-    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 6 * * *", channel: "WHATSAPP" }],
+    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 6 * * *" }],
   },
   {
     label: "Weekend",
     emoji: "⚡",
-    schedules: [{ type: "CHECK_IN", cronExpr: "0 11 * * 6,0", channel: "WHATSAPP" }],
+    schedules: [{ type: "CHECK_IN", cronExpr: "0 11 * * 6,0" }],
   },
   {
     label: "Deep work",
     emoji: "🎯",
-    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 8 * * 1-5", channel: "WHATSAPP" }],
+    schedules: [{ type: "MORNING_TEXT", cronExpr: "0 8 * * 1-5" }],
   },
   {
     label: "Finance",
     emoji: "💰",
-    schedules: [{ type: "EVENING_RECAP", cronExpr: "0 21 * * *", channel: "WHATSAPP" }],
+    schedules: [{ type: "EVENING_RECAP", cronExpr: "0 21 * * *" }],
   },
 ];
 
@@ -134,13 +132,6 @@ const TIME_OPTIONS = Array.from({ length: 24 * 60 }, (_, idx) => {
   return { value, label: `${String(hour).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}` };
 });
 
-const CHANNEL_OPTIONS = ["WHATSAPP", "VOICE"];
-
-const CHANNEL_EMOJI: Record<string, string> = {
-  WHATSAPP: "💬",
-  VOICE: "📞",
-};
-
 export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -151,7 +142,6 @@ export default function SchedulesPage() {
   const [newLabel, setNewLabel] = useState("");
   const [newTime, setNewTime] = useState("08:00");
   const [newDays, setNewDays] = useState("*");
-  const [newChannel, setNewChannel] = useState("WHATSAPP");
   const [saving, setSaving] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<Schedule | null>(null);
@@ -176,7 +166,6 @@ export default function SchedulesPage() {
     setNewType("CUSTOM");
     setNewTime("08:00");
     setNewDays("*");
-    setNewChannel("WHATSAPP");
     setEditingId(null);
     setError(null);
   };
@@ -196,7 +185,6 @@ export default function SchedulesPage() {
     setNewType(s.type);
     setNewTime(time);
     setNewDays(days);
-    setNewChannel(s.channel);
     setEditingId(s.id);
     setShowForm(true);
     setError(null);
@@ -210,7 +198,6 @@ export default function SchedulesPage() {
     setNewLabel(preset.label);
     setNewTime(time);
     setNewDays(days);
-    setNewChannel(first.channel);
     setEditingId(null);
     setShowForm(true);
     setError(null);
@@ -222,7 +209,6 @@ export default function SchedulesPage() {
     const cronExpr = buildCron(newTime, newDays);
     const body = JSON.stringify({
       type: newType,
-      channel: newChannel,
       cronExpr,
       metadata: { label: newLabel.trim() },
     });
@@ -381,27 +367,6 @@ export default function SchedulesPage() {
               </div>
             </div>
 
-            <div>
-              <p className="text-[14px] text-muted-foreground mb-2">Channel</p>
-              <div className="flex gap-2">
-                {CHANNEL_OPTIONS.map((ch) => (
-                  <button
-                    key={ch}
-                    onClick={() => setNewChannel(ch)}
-                    className={cn(
-                      "rounded-xl px-3 py-1.5 text-xs border transition-all duration-200 pill-hover flex items-center gap-1.5",
-                      newChannel === ch
-                        ? "bg-foreground text-background border-transparent shadow-md"
-                        : "border-border/60 hover:border-foreground/20"
-                    )}
-                  >
-                    <span>{CHANNEL_EMOJI[ch]}</span>
-                    {formatEnum(ch)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="flex gap-2">
@@ -422,7 +387,7 @@ export default function SchedulesPage() {
         </Card>
       )}
 
-      {/* Schedule list — grouped like macOS settings */}
+      {/* Schedule list */}
       {schedules.length === 0 ? (
         <div className="rounded-[16px] border border-border/50 bg-card/80 backdrop-blur-xl py-12 text-center">
           <p className="text-[17px] text-muted-foreground">No schedules yet</p>
@@ -436,14 +401,12 @@ export default function SchedulesPage() {
             <div
               key={s.id}
               className={cn(
-                "flex items-center justify-between px-6 py-4 transition-all duration-200",
+                "flex items-center justify-between px-4 sm:px-6 py-4 transition-all duration-200",
                 !s.enabled && "opacity-50"
               )}
             >
               <div className="flex items-center gap-4 min-w-0">
-                <span className="text-[24px] flex-shrink-0">
-                  {CHANNEL_EMOJI[s.channel] ?? "🔔"}
-                </span>
+                <span className="text-[24px] flex-shrink-0">🔔</span>
                 <div className="min-w-0">
                   <p className="text-[16px] font-medium truncate">{getLabel(s)}</p>
                   <p className="text-[14px] text-muted-foreground">{cronToHuman(s.cronExpr)}</p>
@@ -498,10 +461,6 @@ export default function SchedulesPage() {
               <p>
                 <span className="text-muted-foreground">Schedule:</span>{" "}
                 {cronToHuman(deleteTarget.cronExpr)}
-              </p>
-              <p>
-                <span className="text-muted-foreground">Channel:</span>{" "}
-                {formatEnum(deleteTarget.channel)}
               </p>
               <p>
                 <span className="text-muted-foreground">Status:</span>{" "}

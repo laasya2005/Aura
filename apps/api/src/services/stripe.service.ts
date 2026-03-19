@@ -54,8 +54,8 @@ export class StripeService {
     if (!customerId) {
       const customer = await s.customers.create({
         metadata: { userId },
-        phone: user.phone,
-        ...(user.email ? { email: user.email } : {}),
+        email: user.email,
+        ...(user.phone ? { phone: user.phone } : {}),
       });
       customerId = customer.id;
     }

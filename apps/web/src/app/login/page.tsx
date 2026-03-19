@@ -8,48 +8,33 @@ import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
 import { AuraLogo } from "@/components/ui/aura-logo";
 
-type Step = "phone" | "otp";
+type Mode = "login" | "register";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [step, setStep] = useState<Step>("phone");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
+  const [mode, setMode] = useState<Mode>("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const res = await apiFetch("/auth/otp/send", {
-      method: "POST",
-      body: JSON.stringify({ phone }),
-    });
-
-    setLoading(false);
-
-    if (res.success) {
-      setStep("otp");
-    } else {
-      setError(res.error?.message ?? "Failed to send code");
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+    const endpoint = mode === "register" ? "/auth/register" : "/auth/login";
+    const body =
+      mode === "register"
+        ? JSON.stringify({ email, password, firstName })
+        : JSON.stringify({ email, password });
 
     const res = await apiFetch<{
       accessToken: string;
       user: { id: string; plan: string; isNew: boolean; status: string; firstName?: string };
-    }>("/auth/otp/verify", {
-      method: "POST",
-      body: JSON.stringify({ phone, code }),
-    });
+    }>(endpoint, { method: "POST", body });
 
     setLoading(false);
 
@@ -62,7 +47,7 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } else {
-      setError(res.error?.message ?? "Invalid code");
+      setError(res.error?.message ?? (mode === "register" ? "Registration failed" : "Invalid credentials"));
     }
   };
 
@@ -80,67 +65,69 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold">Aura</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            {step === "phone"
-              ? "Enter your phone number to sign in"
-              : "Enter the verification code"}
+            {mode === "login" ? "Sign in to your account" : "Create your account"}
           </p>
         </div>
 
         <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl p-6 shadow-xl">
-          {step === "phone" ? (
-            <form onSubmit={handleSendOtp} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "register" && (
               <div>
-                <label className="text-[13px] font-medium mb-1.5 block">Phone number</label>
+                <label className="text-[13px] font-medium mb-1.5 block">First name</label>
                 <Input
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  type="text"
+                  placeholder="Alex"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   required
                   className="h-11"
                 />
               </div>
-              {error && <p className="text-[13px] text-destructive">{error}</p>}
-              <Button type="submit" className="w-full h-11" disabled={loading}>
-                {loading ? "Sending..." : "Continue"}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <p className="text-[13px] text-muted-foreground text-center mb-1">
-                Code sent to <span className="font-medium text-foreground">{phone}</span>
-              </p>
-              <div>
-                <label className="text-[13px] font-medium mb-1.5 block">Verification code</label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]{6}"
-                  maxLength={6}
-                  placeholder="000000"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  className="text-center tracking-[0.3em] font-mono h-11 text-lg"
-                  required
-                />
-              </div>
-              {error && <p className="text-[13px] text-destructive">{error}</p>}
-              <Button type="submit" className="w-full h-11" disabled={loading}>
-                {loading ? "Verifying..." : "Sign in"}
-              </Button>
-              <button
-                type="button"
-                className="w-full text-center text-[13px] text-muted-foreground hover:text-foreground transition-colors py-1"
-                onClick={() => {
-                  setStep("phone");
-                  setCode("");
-                  setError("");
-                }}
-              >
-                Use a different number
-              </button>
-            </form>
-          )}
+            )}
+            <div>
+              <label className="text-[13px] font-medium mb-1.5 block">Email</label>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-11"
+              />
+            </div>
+            <div>
+              <label className="text-[13px] font-medium mb-1.5 block">Password</label>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                className="h-11"
+              />
+            </div>
+            {error && <p className="text-[13px] text-destructive">{error}</p>}
+            <Button type="submit" className="w-full h-11" disabled={loading}>
+              {loading
+                ? mode === "register"
+                  ? "Creating account..."
+                  : "Signing in..."
+                : mode === "register"
+                  ? "Create account"
+                  : "Sign in"}
+            </Button>
+          </form>
+          <button
+            type="button"
+            className="w-full text-center text-[13px] text-muted-foreground hover:text-foreground transition-colors py-3 mt-2"
+            onClick={() => {
+              setMode(mode === "login" ? "register" : "login");
+              setError("");
+            }}
+          >
+            {mode === "login" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+          </button>
         </div>
       </div>
     </main>

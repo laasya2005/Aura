@@ -5,13 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Known acronyms that should stay all-caps
-const ACRONYMS = new Set(["WHATSAPP"]);
-
 // Converts enum values to readable labels
-// e.g. DATA_PROCESSING → "Data processing", VOICE → "Voice", WHATSAPP → "WHATSAPP"
+// e.g. DATA_PROCESSING → "Data processing", WEB → "Web"
 export function formatEnum(value: string): string {
-  if (ACRONYMS.has(value)) return value;
   const words = value.split("_");
   return words
     .map((w, i) =>
