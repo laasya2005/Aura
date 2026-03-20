@@ -8,7 +8,7 @@ import {
 } from "@aura/shared";
 
 const PLAN_GOAL_LIMITS: Record<string, number> = {
-  FREE: 10,
+  FREE: 5,
   PRO: 25,
   ELITE: 100,
 };

@@ -14,16 +14,19 @@ import {
   createEveningRecapWorker,
   createMemorySummaryWorker,
   createStreakUpdateWorker,
+  createProgressReportWorker,
   setupSystemJobs,
   rehydrateSchedules,
 } from "@aura/queue";
 import { ConversationService } from "./services/conversation.service.js";
+import { ReportService } from "./services/report.service.js";
 import { buildAuditLogger } from "./services/audit.service.js";
 
 const prisma = new PrismaClient();
 const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
 const audit = buildAuditLogger(prisma);
 const conversationService = new ConversationService(prisma, redis, audit);
+const reportService = new ReportService(prisma);
 
 async function recordScheduleSent(userId: string, scheduleId: string): Promise<void> {
   try {
@@ -183,8 +186,48 @@ const streakWorker = createStreakUpdateWorker(async (data) => {
   }
 });
 
+// --- Progress Report Worker ---
+const progressReportWorker = createProgressReportWorker(async (data) => {
+  if (data.userId === "__system__") {
+    console.log(`[progress-report] System ${data.reportType} report dispatch triggered`);
+    if (data.reportType === "weekly") {
+      const count = await reportService.dispatchWeeklyReports();
+      console.log(`[progress-report] Dispatched weekly reports for ${count} users`);
+    } else {
+      const count = await reportService.dispatchMonthlyReports();
+      console.log(`[progress-report] Dispatched monthly reports for ${count} users`);
+    }
+    return;
+  }
+
+  console.log(`[progress-report] Generating ${data.reportType} report for userId=${data.userId}`);
+  try {
+    let content: string;
+    if (data.reportType === "weekly") {
+      content = await reportService.generateWeeklyReport(data.userId);
+    } else {
+      content = await reportService.generateMonthlyReport(data.userId);
+    }
+
+    // Send via iMessage if user has a phone and Sendblue is configured
+    const user = await prisma.user.findUnique({
+      where: { id: data.userId },
+      select: { phone: true },
+    });
+
+    if (user?.phone && process.env.SENDBLUE_API_KEY) {
+      const { SendblueService } = await import("./services/sendblue.service.js");
+      const sendblue = new SendblueService(prisma);
+      await sendblue.sendMessage(user.phone, content);
+      console.log(`[progress-report] ${data.reportType} report sent to ***${user.phone.slice(-4)}`);
+    }
+  } catch (err) {
+    console.error(`[progress-report] Failed for ${data.userId}:`, err);
+  }
+});
+
 // --- Setup system recurring jobs ---
-const workers = [morningWorker, checkInWorker, eveningWorker, memoryWorker, streakWorker];
+const workers = [morningWorker, checkInWorker, eveningWorker, memoryWorker, streakWorker, progressReportWorker];
 
 setupSystemJobs()
   .then(async () => {

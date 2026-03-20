@@ -89,6 +89,7 @@ export default async function goalRoutes(server: FastifyInstance) {
         };
 
         const userContext: UserContext = {
+          userId,
           firstName: user.firstName,
           timezone: user.timezone,
           plan: user.plan,

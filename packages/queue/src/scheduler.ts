@@ -158,4 +158,51 @@ export async function setupSystemJobs(): Promise<void> {
       removeOnComplete: { count: 10 },
     }
   );
+
+  // Weekly progress reports — Sunday 7pm UTC
+  const reportQueue = getQueue(QUEUE_NAMES.PROGRESS_REPORT);
+
+  await reportQueue.add(
+    "system-weekly-report",
+    { userId: "__system__", reportType: "weekly" as const },
+    {
+      repeat: {
+        pattern: "0 19 * * 0",
+        tz: "UTC",
+      },
+      removeOnComplete: { count: 10 },
+    }
+  );
+
+  // Monthly progress reports — 1st of month 10am UTC
+  await reportQueue.add(
+    "system-monthly-report",
+    { userId: "__system__", reportType: "monthly" as const },
+    {
+      repeat: {
+        pattern: "0 10 1 * *",
+        tz: "UTC",
+      },
+      removeOnComplete: { count: 10 },
+    }
+  );
+}
+
+export async function addProgressReportJob(
+  userId: string,
+  reportType: "weekly" | "monthly",
+  delayMs?: number
+): Promise<void> {
+  const queue = getQueue(QUEUE_NAMES.PROGRESS_REPORT);
+  const dateKey = new Date().toISOString().slice(0, 10);
+  await queue.add(
+    `${reportType}-report`,
+    { userId, reportType },
+    {
+      removeOnComplete: { count: 100 },
+      removeOnFail: { count: 50 },
+      jobId: `report:${reportType}:${userId}:${dateKey}`,
+      ...(delayMs ? { delay: delayMs } : {}),
+    }
+  );
 }

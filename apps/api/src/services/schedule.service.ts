@@ -8,7 +8,7 @@ import {
 import { addScheduleJob, removeScheduleJob } from "@aura/queue";
 
 const PLAN_SCHEDULE_LIMITS: Record<string, number> = {
-  FREE: 10,
+  FREE: 3,
   PRO: 25,
   ELITE: 100,
 };

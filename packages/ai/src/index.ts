@@ -19,9 +19,13 @@ export {
   buildConversationMessages,
   buildStreakCompliment,
   buildProactivePrompt,
+  buildWeeklyReportPrompt,
+  buildMonthlyReportPrompt,
   type UserContext,
   type AuraContext,
   type PromptParts,
+  type WeeklyReportData,
+  type MonthlyReportData,
 } from "./prompt-builder.js";
 
 export { checkSafety, SAFETY_DISCLAIMER, type SafetyResult } from "./safety-filter.js";

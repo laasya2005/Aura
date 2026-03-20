@@ -201,14 +201,31 @@ export class StripeService {
   }
 
   private async handleCheckoutCompleted(session: Record<string, unknown>) {
-    const userId = (session.metadata as Record<string, string>)?.userId;
-    const plan = (session.metadata as Record<string, string>)?.plan as "PRO" | "ELITE";
+    let userId = (session.metadata as Record<string, string>)?.userId;
+    let plan = (session.metadata as Record<string, string>)?.plan as "PRO" | "ELITE" | undefined;
     const customerId = session.customer as string;
     const subscriptionId = session.subscription as string;
 
+    // Payment Links: user ID comes via client_reference_id (appended to the link URL)
+    if (!userId) {
+      userId = session.client_reference_id as string | undefined;
+    }
+
+    // Resolve plan from subscription price ID when metadata is missing (Payment Links)
+    if (!plan && subscriptionId) {
+      try {
+        const s = getStripe();
+        const sub = await s.subscriptions.retrieve(subscriptionId);
+        const priceId = sub.items.data[0]?.price?.id;
+        if (priceId === process.env.STRIPE_PRICE_PRO) plan = "PRO";
+        else if (priceId === process.env.STRIPE_PRICE_ELITE) plan = "ELITE";
+      } catch {
+        // ignore
+      }
+    }
+
     if (!userId || !plan) return;
 
-    // Use transaction to ensure subscription and user plan update atomically
     await this.prisma.$transaction([
       this.prisma.subscription.upsert({
         where: { userId },
@@ -236,8 +253,31 @@ export class StripeService {
       userId,
       action: AuditActions.SUBSCRIPTION_CREATED,
       resource: "subscription",
-      metadata: { plan },
+      metadata: { plan, source: session.payment_link ? "payment_link" : "checkout" },
     });
+
+    // Send upgrade confirmation via iMessage if the user has a phone
+    await this.sendUpgradeConfirmation(userId, plan);
+  }
+
+  private async sendUpgradeConfirmation(userId: string, plan: string): Promise<void> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { phone: true, firstName: true },
+      });
+
+      if (!user?.phone || !process.env.SENDBLUE_API_KEY) return;
+
+      const name = user.firstName ? ` ${user.firstName}` : "";
+      const message = `Hey${name}! Your upgrade just went through — you're officially on the ${plan} plan! 🎉 I'm so excited for you. Let's make the most of it together!`;
+
+      const { SendblueService } = await import("./sendblue.service.js");
+      const sendblue = new SendblueService(this.prisma);
+      await sendblue.sendMessage(user.phone, message);
+    } catch (err) {
+      console.error("[stripe] Failed to send upgrade confirmation:", err);
+    }
   }
 
   private async handleSubscriptionUpdated(sub: Record<string, unknown>) {

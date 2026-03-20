@@ -517,6 +517,7 @@ export class ConversationService {
     };
 
     const userContext: UserContext = {
+      userId: user.id,
       firstName: user.firstName,
       timezone: user.timezone,
       plan: user.plan,

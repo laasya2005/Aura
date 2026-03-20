@@ -6,6 +6,7 @@ export const QUEUE_NAMES = {
   EVENING_RECAP: "evening-recap",
   MEMORY_SUMMARY: "memory-summary",
   STREAK_UPDATE: "streak-update",
+  PROGRESS_REPORT: "progress-report",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -64,4 +65,9 @@ export interface MemorySummaryJobData {
 export interface StreakUpdateJobData {
   userId: string;
   goalId: string;
+}
+
+export interface ProgressReportJobData {
+  userId: string;
+  reportType: "weekly" | "monthly";
 }
