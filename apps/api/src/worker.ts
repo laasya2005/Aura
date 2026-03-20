@@ -227,7 +227,14 @@ const progressReportWorker = createProgressReportWorker(async (data) => {
 });
 
 // --- Setup system recurring jobs ---
-const workers = [morningWorker, checkInWorker, eveningWorker, memoryWorker, streakWorker, progressReportWorker];
+const workers = [
+  morningWorker,
+  checkInWorker,
+  eveningWorker,
+  memoryWorker,
+  streakWorker,
+  progressReportWorker,
+];
 
 setupSystemJobs()
   .then(async () => {

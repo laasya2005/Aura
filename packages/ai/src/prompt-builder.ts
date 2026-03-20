@@ -143,9 +143,7 @@ export function buildSystemPrompt(aura: AuraContext, user: UserContext): string 
   }
   userParts.push(`Their timezone is ${user.timezone}.`);
   userParts.push(
-    user.plan === "FREE"
-      ? `The user is on the free plan.`
-      : `The user is on a paid plan.`
+    user.plan === "FREE" ? `The user is on the free plan.` : `The user is on a paid plan.`
   );
 
   if (user.goals && user.goals.length > 0) {
@@ -315,9 +313,7 @@ export function buildMonthlyReportPrompt(
     .map((s) => `- ${s.goalTitle}: ${s.streak}-day streak`)
     .join("\n");
 
-  const milestones = data.milestones
-    .map((m) => `- ${m.goalTitle}: ${m.milestone}`)
-    .join("\n");
+  const milestones = data.milestones.map((m) => `- ${m.goalTitle}: ${m.milestone}`).join("\n");
 
   const trendDirection =
     data.completionRate > data.previousCompletionRate

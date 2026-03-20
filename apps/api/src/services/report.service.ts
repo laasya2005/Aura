@@ -200,9 +200,7 @@ export class ReportService {
 
     // Use timezone-aware date bucketing, consistent with EngagementService
     const uniqueDays = new Set(
-      engagements.map((e) =>
-        e.createdAt.toLocaleDateString("en-CA", { timeZone: timezone })
-      )
+      engagements.map((e) => e.createdAt.toLocaleDateString("en-CA", { timeZone: timezone }))
     );
     const engagementDays = uniqueDays.size;
 

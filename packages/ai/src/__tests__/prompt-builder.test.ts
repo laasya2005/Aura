@@ -6,7 +6,12 @@ import {
   buildWeeklyReportPrompt,
   buildMonthlyReportPrompt,
 } from "../prompt-builder.js";
-import type { AuraContext, UserContext, WeeklyReportData, MonthlyReportData } from "../prompt-builder.js";
+import type {
+  AuraContext,
+  UserContext,
+  WeeklyReportData,
+  MonthlyReportData,
+} from "../prompt-builder.js";
 
 const mockAura: AuraContext = {
   mode: "GLOW",
@@ -179,9 +184,7 @@ describe("Prompt Builder", () => {
 
   describe("buildMonthlyReportPrompt", () => {
     const monthlyData: MonthlyReportData = {
-      goals: [
-        { title: "Run 5K", category: "FITNESS", currentStreak: 21, status: "ACTIVE" },
-      ],
+      goals: [{ title: "Run 5K", category: "FITNESS", currentStreak: 21, status: "ACTIVE" }],
       engagementDays: 22,
       totalDays: 30,
       completionRate: 73,

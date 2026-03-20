@@ -16,8 +16,10 @@ const fadeUp = {
   }),
 };
 
-const PRO_LINK = process.env.NEXT_PUBLIC_STRIPE_LINK_PRO || "https://buy.stripe.com/test_14A6oGdCE26i6dR4RL6Zy00";
-const ELITE_LINK = process.env.NEXT_PUBLIC_STRIPE_LINK_ELITE || "https://buy.stripe.com/test_dRdR8buw8uGgSvckd6Zy01";
+const PRO_LINK =
+  process.env.NEXT_PUBLIC_STRIPE_LINK_PRO || "https://buy.stripe.com/test_14A6oGdCE26i6dR4RL6Zy00";
+const ELITE_LINK =
+  process.env.NEXT_PUBLIC_STRIPE_LINK_ELITE || "https://buy.stripe.com/test_dRdR8buw8uGgSvckd6Zy01";
 
 const PLANS = [
   {
@@ -155,10 +157,10 @@ function PricingContent() {
             </div>
 
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-[28px] sm:text-[36px] font-bold tracking-tight">{plan.price}</span>
-              {plan.period && (
-                <span className="text-[15px] text-white/40">{plan.period}</span>
-              )}
+              <span className="text-[28px] sm:text-[36px] font-bold tracking-tight">
+                {plan.price}
+              </span>
+              {plan.period && <span className="text-[15px] text-white/40">{plan.period}</span>}
             </div>
 
             <ul className="space-y-3 flex-1 mb-7">
