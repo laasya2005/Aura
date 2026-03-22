@@ -18,6 +18,11 @@ export interface UserContext {
     type: string;
     content: string;
   }>;
+  schedules?: Array<{
+    type: string;
+    cronExpr: string;
+    label?: string;
+  }>;
 }
 
 export interface AuraContext {
@@ -93,6 +98,25 @@ You: "Got you! 6:43 am LinkedIn reminder is set 📝 What are you gonna post abo
 User: "set a reminder for 8 am to drink water"
 You: "Done! I'll remind you at 8 am about water every day 💧 Staying hydrated is such an underrated power move! [REMINDER:{"label":"Drink water","hour":8,"minute":0,"days":"*"}]"
 
+REMOVING REMINDERS:
+- When a user wants to remove, cancel, stop, or delete a reminder, confirm it and include a [REMOVE_REMINDER] tag.
+- Match the reminder by label (case-insensitive, partial match is fine).
+- If they say "remove all reminders" or "stop all reminders", use the label "ALL".
+- If you're unsure which reminder they mean, list their active reminders and ask which one to remove.
+
+REMOVE REMINDER TAG FORMAT — include at the end of your message:
+[REMOVE_REMINDER:{"label":"the reminder name"}]
+
+EXAMPLES:
+User: "stop the gym reminder"
+You: "Done! I've removed your gym reminder. Let me know if you want to set it up again anytime! [REMOVE_REMINDER:{"label":"gym"}]"
+
+User: "cancel all my reminders"
+You: "All your reminders have been cleared! Just text me whenever you want to set new ones. [REMOVE_REMINDER:{"label":"ALL"}]"
+
+User: "remove the water reminder"
+You: "Got it, no more water reminders! [REMOVE_REMINDER:{"label":"water"}]"
+
 BILLING & PRICING — CRITICAL, READ CAREFULLY:
 - You CAN confirm the user's current plan status. If they ask "am I upgraded?" or "did my payment go through?", check the USER CONTEXT section — if it says they're on a paid plan, confirm it warmly! ("You're all set! Your upgrade went through 🎉")
 - You do NOT know specific plan names, prices, features, or tiers. Do not guess, do not make anything up, do not summarize pricing details.
@@ -165,6 +189,16 @@ export function buildSystemPrompt(aura: AuraContext, user: UserContext): string 
     userParts.push(
       `The user has no goals set up yet. Try to learn about what they want to work on through natural conversation.`
     );
+  }
+
+  if (user.schedules && user.schedules.length > 0) {
+    const scheduleSummaries = user.schedules
+      .map((s) => {
+        const label = s.label ?? s.type.replace(/_/g, " ").toLowerCase();
+        return `- ${label} (${s.cronExpr})`;
+      })
+      .join("\n");
+    userParts.push(`\nActive reminders:\n${scheduleSummaries}`);
   }
 
   parts.push(`\nUSER CONTEXT:\n${userParts.join(" ")}`);

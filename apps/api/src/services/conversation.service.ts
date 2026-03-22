@@ -186,8 +186,20 @@ export class ConversationService {
       }
     }
 
-    // Strip any [REMINDER] tag from visible message
+    // Parse [REMOVE_REMINDER] tag from AI response
+    const removeMatch = responseContent.match(/\[REMOVE_REMINDER:\s*(\{[^}]+\})\s*\]/);
+    if (removeMatch) {
+      try {
+        const removeData = JSON.parse(removeMatch[1]!) as { label: string };
+        await this.removeReminderByLabel(userId, removeData.label);
+      } catch (err) {
+        console.error("[conversation] Failed to remove reminder:", err);
+      }
+    }
+
+    // Strip any [REMINDER] and [REMOVE_REMINDER] tags from visible message
     responseContent = responseContent.replace(/\s*\[REMINDER:\s*\{[^}]+\}\s*\]/, "").trim();
+    responseContent = responseContent.replace(/\s*\[REMOVE_REMINDER:\s*\{[^}]+\}\s*\]/, "").trim();
 
     // Store AI response
     const responseMsg = await this.storeMessage(
@@ -485,6 +497,35 @@ export class ConversationService {
     console.log(`[conversation] Updated timezone for user ${userId} to ${timezone}`);
   }
 
+  /**
+   * Remove reminders by label match. "ALL" removes all user schedules.
+   */
+  private async removeReminderByLabel(userId: string, label: string): Promise<void> {
+    const schedules = await this.prisma.schedule.findMany({
+      where: { userId, enabled: true },
+      select: { id: true, type: true, metadata: true },
+    });
+
+    const toRemove =
+      label.toUpperCase() === "ALL"
+        ? schedules
+        : schedules.filter((s) => {
+            const scheduleLabel =
+              (s.metadata as { label?: string } | null)?.label ??
+              s.type.replace(/_/g, " ");
+            return scheduleLabel.toLowerCase().includes(label.toLowerCase());
+          });
+
+    for (const s of toRemove) {
+      await removeScheduleJob(s.id, s.type).catch(() => {});
+      await this.prisma.schedule.delete({ where: { id: s.id } });
+    }
+
+    console.log(
+      `[conversation] Removed ${toRemove.length} reminder(s) for user ${userId} (label: "${label}")`
+    );
+  }
+
   private async checkRateLimit(userId: string, plan: string): Promise<void> {
     const key = `${MESSAGE_RATE_LIMIT_KEY}${userId}`;
     const limit = MESSAGE_RATE_LIMITS[plan] ?? 10;
@@ -569,6 +610,10 @@ export class ConversationService {
           take: 5,
           select: { type: true, content: true },
         },
+        schedules: {
+          where: { enabled: true },
+          select: { type: true, cronExpr: true, metadata: true },
+        },
       },
     });
 
@@ -602,6 +647,11 @@ export class ConversationService {
       memories: user.memories.map((m) => ({
         type: m.type,
         content: m.content,
+      })),
+      schedules: user.schedules.map((s) => ({
+        type: s.type,
+        cronExpr: s.cronExpr,
+        label: (s.metadata as { label?: string } | null)?.label,
       })),
     };
 
