@@ -116,6 +116,7 @@ model User {
   firstName   String?    @map("first_name")
   lastName    String?    @map("last_name")
   timezone    String     @default("America/New_York")
+  timezoneSet Boolean    @default(false) @map("timezone_set")
   status      UserStatus @default(ONBOARDING)
   plan        Plan       @default(FREE)
   onboardedAt DateTime?  @map("onboarded_at")
