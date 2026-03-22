@@ -6,6 +6,7 @@ export interface UserContext {
   userId: string;
   firstName?: string | null;
   timezone: string;
+  timezoneSet?: boolean;
   plan: string;
   goals?: Array<{
     title: string;
@@ -121,7 +122,7 @@ ABSOLUTE RULES (NEVER BREAK THESE):
 
 export function buildSystemPrompt(aura: AuraContext, user: UserContext): string {
   // Inject web URL into the prompt for pricing page
-  const webUrl = process.env.WEB_URL ?? "https://aura.app";
+  const webUrl = process.env.WEB_URL ?? "https://aura.gdn";
   const preamble = SYSTEM_PREAMBLE.replace(/\{\{WEB_URL\}\}/g, webUrl).replace(
     /\{\{USER_ID\}\}/g,
     encodeURIComponent(user.userId)
@@ -141,7 +142,13 @@ export function buildSystemPrompt(aura: AuraContext, user: UserContext): string 
       `You don't know the user's name yet. Ask for it early in the conversation in a natural way.`
     );
   }
-  userParts.push(`Their timezone is ${user.timezone}.`);
+  if (user.timezoneSet) {
+    userParts.push(`Their timezone is ${user.timezone}.`);
+  } else {
+    userParts.push(
+      `Their timezone has NOT been confirmed yet (defaulting to ${user.timezone}). If they ask to set a reminder or schedule, naturally ask what timezone they're in before confirming. Example: "Sure! What timezone are you in so I get the timing right?" (They might say Eastern, Central, Mountain, Pacific, IST, a city name, etc.) Once they tell you, confirm the reminder. Do NOT ask about timezone if they're just chatting normally.`
+    );
+  }
   userParts.push(
     user.plan === "FREE" ? `The user is on the free plan.` : `The user is on a paid plan.`
   );

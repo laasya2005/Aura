@@ -11,8 +11,9 @@ import {
   type AuraContext,
   type UserContext,
 } from "@aura/ai";
-import { AppError, ErrorCode, type AuditLogger, AuditActions, type Channel } from "@aura/shared";
-import { addScheduleJob } from "@aura/queue";
+import { AppError, ErrorCode, type AuditLogger, AuditActions, type Channel, parseTimezone } from "@aura/shared";
+import { addScheduleJob, removeScheduleJob } from "@aura/queue";
+import { createDefaultSchedules } from "./schedule-defaults.js";
 
 const MESSAGE_RATE_LIMIT_KEY = "msg:rl:";
 const MESSAGE_RATE_LIMIT_WINDOW = 60; // 1 minute
@@ -77,6 +78,12 @@ export class ConversationService {
         response: responseMsg,
         conversationId: conversation.id,
       };
+    }
+
+    // Detect timezone from message (e.g., "I'm in California", "change timezone to Pacific")
+    const detectedTimezone = this.parseTimezoneFromMessage(content);
+    if (detectedTimezone) {
+      await this.applyTimezone(userId, detectedTimezone);
     }
 
     // Get or create conversation + load AI context in parallel
@@ -151,7 +158,12 @@ export class ConversationService {
     }
 
     if (reminderData) {
-      const tz = userContext.timezone;
+      // If reminder includes a timezone (e.g., "7pm PST"), apply it to the user
+      const reminderTz = (reminderParsed as { timezone?: string } | null)?.timezone;
+      if (reminderTz && !userContext.timezoneSet) {
+        await this.applyTimezone(userId, reminderTz);
+      }
+      const tz = reminderTz ?? userContext.timezone;
       const cronExpr = `${reminderData.minute} ${reminderData.hour} * * ${reminderData.days}`;
       try {
         const schedule = await this.prisma.schedule.create({
@@ -359,7 +371,7 @@ export class ConversationService {
    */
   private parseReminderIntent(
     message: string
-  ): { label: string; hour: number; minute: number } | null {
+  ): { label: string; hour: number; minute: number; timezone?: string } | null {
     const lower = message.toLowerCase();
 
     // Cheap pre-filter before regex
@@ -411,7 +423,66 @@ export class ConversationService {
 
     if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
 
-    return { label, hour, minute };
+    // Extract timezone from the message (e.g., "7pm PST", "7pm pacific time")
+    const timezone = parseTimezone(message) ?? undefined;
+
+    return { label, hour, minute, timezone };
+  }
+
+  /**
+   * Detect timezone mentions in any message.
+   * Handles: "I'm in California", "I live in Denver", "change my timezone to Pacific", etc.
+   */
+  private parseTimezoneFromMessage(message: string): string | null {
+    const lower = message.toLowerCase();
+
+    // Require strong location-intent signals to avoid false positives
+    // (e.g., "I love mountain biking" should NOT trigger timezone detection)
+    const locationPatterns = [
+      /\b(?:timezone|time zone)\b/,
+      /\bi(?:'m| am) (?:in|from|based in|located in)\b/,
+      /\bi live in\b/,
+      /\bbased (?:in|out of)\b/,
+      /\blocated in\b/,
+      /\b(?:change|set|update|switch)\b.*\b(?:timezone|time zone|tz)\b/,
+      /\b(?:east|west) coast\b/,
+    ];
+
+    const hasLocationIntent = locationPatterns.some((p) => p.test(lower));
+    if (!hasLocationIntent) return null;
+
+    return parseTimezone(message);
+  }
+
+  /**
+   * Update user's timezone and re-register all their schedules.
+   * Creates default schedules if user has none.
+   */
+  private async applyTimezone(userId: string, timezone: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { timezone, timezoneSet: true },
+    });
+
+    // Update all existing schedules to the new timezone
+    const schedules = await this.prisma.schedule.findMany({
+      where: { userId, enabled: true },
+      select: { id: true, type: true, cronExpr: true },
+    });
+
+    for (const s of schedules) {
+      await this.prisma.schedule.update({
+        where: { id: s.id },
+        data: { timezone },
+      });
+      await removeScheduleJob(s.id, s.type).catch(() => {});
+      await addScheduleJob(s.id, userId, s.type, s.cronExpr, timezone).catch(() => {});
+    }
+
+    // Create default schedules if user has none
+    await createDefaultSchedules(this.prisma, userId, timezone);
+
+    console.log(`[conversation] Updated timezone for user ${userId} to ${timezone}`);
   }
 
   private async checkRateLimit(userId: string, plan: string): Promise<void> {
@@ -520,6 +591,7 @@ export class ConversationService {
       userId: user.id,
       firstName: user.firstName,
       timezone: user.timezone,
+      timezoneSet: user.timezoneSet,
       plan: user.plan,
       goals: user.goals.map((g) => ({
         title: g.title,

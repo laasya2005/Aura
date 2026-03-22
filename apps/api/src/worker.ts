@@ -28,13 +28,17 @@ const audit = buildAuditLogger(prisma);
 const conversationService = new ConversationService(prisma, redis, audit);
 const reportService = new ReportService(prisma);
 
-async function recordScheduleSent(userId: string, scheduleId: string): Promise<void> {
+async function recordScheduleSent(
+  userId: string,
+  scheduleId: string,
+  channel: "WEB" | "SMS" = "WEB"
+): Promise<void> {
   try {
     await prisma.scheduleExecution.create({
       data: {
         userId,
         scheduleId,
-        channel: "WEB",
+        channel,
         status: "SENT",
       },
     });
@@ -86,7 +90,7 @@ async function generateAndStoreMessage(
     label
   );
 
-  await recordScheduleSent(userId, scheduleId);
+  await recordScheduleSent(userId, scheduleId, channel as "WEB" | "SMS");
 
   // Send via iMessage if user has a phone number and Sendblue is configured
   if (user.phone && process.env.SENDBLUE_API_KEY) {
