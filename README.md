@@ -2,6 +2,11 @@
 
 Full-stack AI companion application that sends personalized texts, voice calls, and messages based on your goals and preferred personality style.
 
+<img width="1512" height="855" alt="Screenshot 2026-03-25 at 10 46 36 PM" src="https://github.com/user-attachments/assets/935e957b-d94a-4f52-94e4-03335d8a858b" />
+
+<img width="1512" height="858" alt="Screenshot 2026-03-25 at 10 47 06 PM" src="https://github.com/user-attachments/assets/3f1f77cd-8fb3-45ed-9c22-313592d6a293" />
+
+
 ## Quick Start
 
 ```bash
